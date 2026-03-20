@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>KFK — Lyspunkter · SVG Lokalcamp 2026</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+
+    <style>
+      /* ── Miles colour palette ─────────────────────────────── */
+      :root {
+        --col-bg:      #fdf6ef;
+        --col-surface: #fbf0e5;
+        --col-border:  #ede0d8;
+        --col-text:    #131313;
+        --col-heading: #450d21;
+        --col-muted:   #643546;
+        --col-accent:  #ff303b;
+        --col-fix:     #2d8a4e;
+        --col-purple:  #5d3b58;
+        --col-yellow:  #c08b30;
+      }
+
+      /* ── Base theme ───────────────────────────────────────── */
+      .reveal-viewport { background: var(--col-bg); }
+
+      .reveal {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        font-size: 2rem;
+        color: var(--col-text);
+      }
+
+      .reveal h1,
+      .reveal h2,
+      .reveal h3 {
+        color: var(--col-heading);
+        text-transform: none;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .reveal h1 { font-size: 2.4em; }
+      .reveal h2 { font-size: 1.5em; border-bottom: 3px solid var(--col-accent); padding-bottom: 0.15em; margin-bottom: 0.5em; }
+      .reveal h3 { font-size: 1.1em; color: var(--col-muted); }
+
+      .reveal section { text-align: left; }
+
+      .reveal .title-slide { text-align: center; }
+
+      .reveal ul, .reveal ol { margin-left: 1.2em; }
+      .reveal li { margin-bottom: 0.3em; }
+
+      .reveal strong { color: var(--col-accent); }
+      .reveal em { color: var(--col-muted); font-style: normal; font-weight: 500; }
+
+      /* ── Code / ASCII art ─────────────────────────────────── */
+      .reveal pre {
+        background: var(--col-surface);
+        border: 1px solid var(--col-border);
+        border-radius: 6px;
+        padding: 0.6em 1em;
+        font-size: 0.42em;
+        line-height: 1.35;
+        box-shadow: none;
+        white-space: pre;
+        overflow-x: auto;
+        width: 100%;
+        margin: 0.5em 0;
+      }
+
+      .reveal pre code {
+        background: none;
+        padding: 0;
+        font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+        color: var(--col-text);
+      }
+
+      /* ── Blockquote / tips ────────────────────────────────── */
+      .reveal blockquote {
+        background: var(--col-surface);
+        border-left: 4px solid var(--col-yellow);
+        border-radius: 0 6px 6px 0;
+        padding: 0.5em 1em;
+        margin: 0.8em 0;
+        font-size: 0.7em;
+        color: var(--col-muted);
+        font-style: normal;
+        width: 100%;
+        box-shadow: none;
+      }
+
+      .reveal blockquote strong { color: var(--col-yellow); }
+
+      /* ── Tables ───────────────────────────────────────────── */
+      .reveal table {
+        font-size: 0.75em;
+        border-collapse: collapse;
+        margin: 0.5em 0;
+      }
+      .reveal table th {
+        background: var(--col-heading);
+        color: #fff;
+        padding: 0.3em 0.8em;
+        font-weight: 600;
+      }
+      .reveal table td {
+        padding: 0.25em 0.8em;
+        border-bottom: 1px solid var(--col-border);
+      }
+      .reveal table tr:nth-child(even) td { background: var(--col-surface); }
+
+      /* ── Accent chip / badge ──────────────────────────────── */
+      .chip {
+        display: inline-block;
+        background: var(--col-accent);
+        color: #fff;
+        border-radius: 4px;
+        padding: 0.05em 0.45em;
+        font-size: 0.7em;
+        font-weight: 700;
+        vertical-align: middle;
+        margin-left: 0.3em;
+      }
+
+      .chip-green { background: var(--col-fix); }
+      .chip-purple { background: var(--col-purple); }
+      .chip-yellow { background: var(--col-yellow); }
+
+      /* ── Two-column layout ────────────────────────────────── */
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.2em;
+        align-items: start;
+      }
+      .cols3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1em;
+        align-items: start;
+      }
+
+      /* ── Big stat ─────────────────────────────────────────── */
+      .bigstat {
+        font-size: 2.2em;
+        font-weight: 800;
+        color: var(--col-heading);
+        line-height: 1;
+      }
+      .bigstat-label {
+        font-size: 0.65em;
+        color: var(--col-muted);
+        display: block;
+        margin-bottom: 0.6em;
+      }
+
+      /* ── Progress bar ─────────────────────────────────────── */
+      .reveal .progress { color: var(--col-accent); }
+
+      /* ── Slide number ─────────────────────────────────────── */
+      .reveal .slide-number { color: var(--col-muted); background: transparent; font-size: 0.65em; }
+
+      /* ── Controls ─────────────────────────────────────────── */
+      .reveal .controls { color: var(--col-accent); }
+
+      /* ── Subtitle / meta on title slide ───────────────────── */
+      .subtitle {
+        font-size: 0.7em;
+        color: var(--col-muted);
+        margin-top: 0.4em;
+      }
+
+      /* ── Section indicator pill ───────────────────────────── */
+      .section-num {
+        font-size: 0.55em;
+        color: var(--col-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        display: block;
+        margin-bottom: 0.15em;
+      }
+
+      /* ── Separator / rule ─────────────────────────────────── */
+      .reveal hr {
+        border: none;
+        border-top: 1px solid var(--col-border);
+        margin: 0.6em 0;
+      }
+
+      /* ── Smaller text helper ──────────────────────────────── */
+      .small { font-size: 0.65em; color: var(--col-muted); }
+
+      /* ── Forbidden list ───────────────────────────────────── */
+      .forbidden li::marker { content: "❌ "; }
+    </style>
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+
+        <!-- ── 0. Tittel ───────────────────────────────────── -->
+        <section class="title-slide">
+          <h1>KFK</h1>
+          <p class="subtitle">Kredittfaglig kompetansesenter<br>— Lyspunkter fra 18 måneder</p>
+          <hr style="width:40%;margin:1em auto;"/>
+          <p class="small">Henry Sjøen &amp; Ahmed Abdi · SVG Lokalcamp 2026</p>
+          <p class="small">~10 min</p>
+        </section>
+
+        <!-- ── 1. Hvem er kunden? ──────────────────────────── -->
+        <section>
+          <span class="section-num">1 / 7 · ~1 min</span>
+          <h2>Hvem er kunden og hva er KFK?</h2>
+          <div class="cols">
+            <div>
+              <pre><code>    Henry                    Ahmed
+      o                        O
+    [0-0]  &lt;- briller        {===}  &lt;- kufi
+     /|\                      / | \
+     / \                         |
+                                / \
+
+  rollekort:               rollekort:
+  ✅ frontend              ✅ backend
+  🤔 backend (av og til)   😤 frontend (motvillig)
+  😎 infra (egentlig?)     🤯 infra (forundret)
+  🎂 kake (ok)             🎂 KAKE (lidenskap)</code></pre>
+            </div>
+            <div>
+              <ul>
+                <li><strong>SpareBank 1</strong> — Norges nest største bankgruppe</li>
+                <li><strong>KFK</strong> = Kredittfaglig kompetansesenter — interne modeller for kredittanalyse</li>
+                <li><strong>Miles-teamet:</strong> Henry + Ahmed</li>
+                <li><strong>KFK-teamet:</strong> Aurélie (leder), Erik (matematiker), Tharmira (junior)</li>
+                <li>18 måneder · ~4 400 commits · ~20 repoer</li>
+              </ul>
+              <pre><code>        ______________________
+       |   S P A R E B A N K  |
+       |   ___     ___   1    |
+       |  | $ |   | $ |       |
+       |  |___|   |___|       |
+       |______________________|
+            "velkommen. dere får
+             én Jira-bruker og
+             to GitHub-seats"</code></pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── 2a. Storkunde ───────────────────────────────── -->
+        <section>
+          <span class="section-num">2 / 7 · ~2 min</span>
+          <h2>De to kjernemodellene</h2>
+          <h3>Storkunde — kredittanalyse for store bedriftskunder</h3>
+          <div class="cols">
+            <pre><code>  STORKUNDE
+
+    O
+  {===}  "ok Brønnøysund,
+  / | \   hva er PD-en?"
+   / \
+    |
+    v
+ ___________
+| SCOREKORT |
+|  PD: 2.1% |
+|  STATUS:  |
+| GODKJENT✓ |
+|___________|
+     |
+     v
+  📧 epost
+  sendt!</code></pre>
+            <ul>
+              <li>Rådgiver fyller ut spørreskjema: robusthet, marked, nøkkelperson</li>
+              <li>PD-kalkulator: sannsynlighet for mislighold</li>
+              <li>Scorekort → kontroll → godkjenning → epostvarsling</li>
+              <li>Brønnøysund-oppslag for automatisk kundeidentifikasjon</li>
+              <li><span class="chip chip-green">I produksjon</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ── 2b. Landbruk ────────────────────────────────── -->
+        <section>
+          <span class="section-num">2 / 7 · ~2 min</span>
+          <h2>De to kjernemodellene</h2>
+          <h3>Landbruk — verdivurdering av landbrukseiendommer</h3>
+          <div class="cols">
+            <pre><code>  LANDBRUK
+
+    o  "kua er verdt
+  [0-0]  kr 18 400
+   /|\   iflg. forskrift"
+   / \
+    |
+    v
+ ___________
+| 🐄  🏠  🌾 |
+| areal: ok  |
+| heftelse:  |
+| 3 stk      |
+|____________|
+     |
+     v
+  kr 4.200.000
+
+  *milestone nådd*
+
+  👩‍💼 Aurélie: 🎂🎂🎂
+  "jeg bestiller kake!"</code></pre>
+            <ul>
+              <li>Verdivurdering av landbrukseiendommer for IRB-lån</li>
+              <li>Registrerer: arealer, bygninger, produksjonsdyr, festetomter, heftelser</li>
+              <li>Ambita-integrasjon: matrikkeldata fra Kartverket</li>
+              <li>Forretningsregler sikrer at vurderinger følger bankens retningslinjer</li>
+              <li>960 commits · fem måneder</li>
+              <li><span class="chip chip-green">I produksjon</span></li>
+            </ul>
+          </div>
+          <blockquote>Begge i produksjon — kjerneverktøy i bankens lånesaksbehandling. Samme stack: React Router v7 + .NET + Caddy + AWS/Kubernetes</blockquote>
+        </section>
+
+        <!-- ── 3. Arkitektur ───────────────────────────────── -->
+        <section>
+          <span class="section-num">3 / 7 · ~1,5 min</span>
+          <h2>Arkitektur og sky</h2>
+          <div class="cols">
+            <pre><code>  Kubernetes Pod
+  +--------------------------+
+  |    Kubernetes Pod        |
+  |  +--------------------+  |
+  |  |   Caddy  :8080     |  |
+  |  |  /api/* --> :5000  |  |
+  |  |  /*     --> :3000  |  |
+  |  +--+-------------+--+  |
+  |     |             |     |
+  |  +--+--+     +----+--+  |
+  |  |.NET |     |React  |  |
+  |  |:5000|     |:3000  |  |
+  |  +-----+     +-------+  |
+  +--------------------------+
+              |
+           [MSSQL]
+          (on-prem,
+         et sted i
+          Bjørvika)</code></pre>
+            <div>
+              <ul>
+                <li><strong>Én container, tre prosesser:</strong> Caddy + .NET + React</li>
+                <li>Ingen CORS · atomisk deploy — alltid i sync</li>
+                <li>Ekstern Caddy-proxy injiserer JWT i header</li>
+                <li>Push til <code>main</code> → GitHub Actions → Docker → AWS ECR → Kubernetes</li>
+                <li>Ingen manuelle steg fra commit til produksjon</li>
+              </ul>
+              <hr/>
+              <p class="small">AWS eu-north-1 · Kubernetes + Istio · MSSQL on-prem · Cognito OIDC</p>
+            </div>
+          </div>
+          <blockquote><strong>Ingen CORS + atomisk deploy</strong> — én container-valget var omstridt, men det funker.</blockquote>
+        </section>
+
+        <!-- ── 4. KFK-rammeverket ──────────────────────────── -->
+        <section>
+          <span class="section-num">4 / 7 · ~2 min</span>
+          <h2>KFK-rammeverket</h2>
+          <pre><code>  ___________________________________________
+ |  storkunde  |  landbruk  |  neste...    |
+ |-------------|------------|--------------|
+ |    kfk-ui   |   start    | &lt;- Henry     |
+ |-------------|------------|              |
+ | KFK.Auth + KFK.SB1SK     | &lt;- Ahmed     |
+ |----------------------------------|
+ |   kfk (CLI)                      |
+ |__________________________________|
+
+     📦 KFK.Auth  📦 KFK.SB1SK
+     v2 -----> v3  (feb 2026)</code></pre>
+          <div class="cols">
+            <ul>
+              <li><strong>kfk-ui</strong> — React-komponentbibliotek på SB1-designstandarder. Redigerbare tabeller, 8 diagramtyper, toast, DSCR-matrise. 100+ sider showcase-dokumentasjon.</li>
+              <li><strong>start</strong> — referansemal: klon og ha fungerende app fra dag én (auth, CSRF, Prometheus, Dependabot, CodeQL)</li>
+            </ul>
+            <ul>
+              <li><strong>kfk</strong>-CLI — <code>kfk fix</code> (Biome + CSharpier), <code>kfk logs</code> (fuzzy pod-søk), <code>kfk prs</code> (interaktiv PR-innboks via GitHub GraphQL)</li>
+              <li><strong>KFK.Auth + KFK.SB1SK</strong> — NuGet-pakker for JWT-autentisering og SB1 Kundeinfo-API</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ── 5a. Arbeidsmetodikk — filosofi ─────────────── -->
+        <section>
+          <span class="section-num">5 / 7 · ~2 min</span>
+          <h2>Arbeidsmetodikk</h2>
+          <h3>Henrys filosofier</h3>
+          <div class="cols">
+            <div>
+              <p><strong>#1 — Abstraksjon</strong></p>
+              <blockquote>«En god abstraksjon gjør noe <strong>enklere å forstå</strong>. Ikke bare… abstrakt.»</blockquote>
+              <p><strong>#2 — Progressive enhancement</strong></p>
+              <blockquote>«Alle skjemaer skal fungere uten client-side JavaScript.»</blockquote>
+              <p><strong>#3 — Den indre kampen</strong></p>
+              <blockquote>«React Router v7 + SSR gjør jo .NET overflødig?… men. Ahmed er i rommet.»</blockquote>
+            </div>
+            <div>
+              <p class="small" style="margin-bottom:0.3em;font-weight:600;color:var(--col-heading)">Forbudte ting:</p>
+              <ul class="forbidden" style="font-size:0.6em;list-style:none;margin-left:0">
+                <li>AutoMapper → manuelle extension-metoder</li>
+                <li>Repository-mønster → direkte EF DbContext</li>
+                <li>Global state / Redux</li>
+                <li>useState for forms → native HTML forms</li>
+                <li>modal (anti-pattern — se Invoker Commands API)</li>
+                <li>Swagger → Scalar</li>
+                <li>i18next → business language er norsk</li>
+                <li>ESLint + Prettier → Biome (10–100× raskere)</li>
+                <li>Next.js → «for opinionated»</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── 5b. Arbeidsmetodikk — refactor + Claude ────── -->
+        <section>
+          <span class="section-num">5 / 7 · ~2 min</span>
+          <h2>Arbeidsmetodikk</h2>
+          <h3>Standardisering og AI-verktøy</h3>
+          <div class="cols">
+            <pre><code>  okt 2025: THE GREAT REFACTORING
+
+    o   "AutoMapper         O
+  [0-0]   må dø"          {===}  "i begge
+   /|\    *kaster*         / | \  repoer?"
+   / \    AutoMapper
+
+  storkunde ✓
+  landbruk  ✓
+
+  jan 2026: CLAUDE.MD DUKKER OPP
+
+    o
+  [0-0]  *plasserer fil i alle repoer*
+   /|\
+   / \
+      ____________________
+     | CLAUDE.md           |
+     | "du er en React-    |
+     |  ekspert. du liker  |
+     |  ikke AutoMapper    |
+     |  eller Repository-  |
+     |  mønsteret"         |
+     |____________________|
+
+          📈📈📈📈📈</code></pre>
+            <div>
+              <ul>
+                <li>Alt gjennom <strong>pull requests</strong> — CODEOWNERS + GitHub Copilot automatisk review</li>
+                <li>Okt–nov 2025: identiske refaktoreringer i begge kodebasene</li>
+                <li>Første <code>CLAUDE.md</code>: 22. januar 2026</li>
+                <li>Innen februar: alle aktive repoer har CLAUDE.md</li>
+                <li>Sammenfaller nøyaktig med aktivitetsspiggen</li>
+              </ul>
+              <hr/>
+              <p class="small"><strong>setup-local-dev.sh</strong> i hvert repo: sjekker secrets, genererer DB-passord, dreper og gjenoppretter SQL-container, kjører migrations + seed. Én kommando.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── 6. Tall og vekst ────────────────────────────── -->
+        <section>
+          <span class="section-num">6 / 7 · ~1 min</span>
+          <h2>Tall og vekst</h2>
+          <div class="cols">
+            <div>
+              <pre><code>commits/dag (Henry, gjennomsnitt per periode)
+
+ 33 │                              ┌──────────
+    │                              │
+ 18 │                  ┌───────────┘
+    │                  │
+  8 │──────────────────┘
+    │   (pause mai–aug ↓)
+  0 └──────────────────────────────────────
+     okt '24  feb '25  okt '25  jan '26
+                                  ↑
+                             CLAUDE.md</code></pre>
+              <table>
+                <thead><tr><th>Periode</th><th>Commits/dag</th></tr></thead>
+                <tbody>
+                  <tr><td>Okt–nov 2024</td><td>~8</td></tr>
+                  <tr><td>Feb–mar 2025</td><td>~8</td></tr>
+                  <tr><td>Okt–nov 2025</td><td>~18</td></tr>
+                  <tr><td>Jan–mar 2026</td><td>~33</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <div class="bigstat">4 400<span class="bigstat-label">commits totalt · sep 2024 – mar 2026</span></div>
+              <div class="bigstat">73 % / 27 %<span class="bigstat-label">Henry / Ahmed</span></div>
+              <div class="bigstat">915<span class="bigstat-label">commits · rekordmåned feb 2026</span></div>
+              <div class="bigstat">132<span class="bigstat-label">commits · rekorddag 17. feb 2026</span></div>
+              <p class="small">= én commit hvert <strong>7. minutt</strong> hele arbeidsdagen</p>
+              <hr/>
+              <p class="small">Ahmed holdt prosjektet i live alene i 3 mnd mens Henry var i pappaperm — og måtte gjøre frontend på kjøpet. 👶🏖️</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── 7. Hva betyr dette? ─────────────────────────── -->
+        <section>
+          <span class="section-num">7 / 7 · ~0,5 min</span>
+          <h2>Hva betyr dette?</h2>
+          <div class="cols">
+            <pre><code>       o                    O
+     [0-0]                {===}
+      /|\                 / | \
+      / \                   |
+                           /  \
+  "vi bygde ikke       "vi bygde
+   bare to apper"       plattformen
+                        de lever i"
+
+        \                  /
+         \                /
+          v              v
+   ___________________________
+  |                           |
+  |  neste KFK-modell:        |
+  |                           |
+  |  git clone start          |
+  |  # ferdig dag 1 ✓         |
+  |___________________________|
+
+  📋 Tharmira:  "jeg skriver README allerede!"
+  🧮 Erik:      "jeg har laget et regneark over ADR-ene"
+  👩‍💼 Aurélie:   "je commande encore du gâteau"
+
+            *mic drop*</code></pre>
+            <div>
+              <ul>
+                <li>To konsulenter bygde <strong>ikke bare to apper</strong> — de bygde en intern plattform</li>
+                <li>Neste KFK-modell kan leve i rammeverket fra dag én</li>
+                <li>Tydelig ansvarsfordeling + standardiserte mønstre + AI-verktøy = målbar effekt på leveransetakt</li>
+                <li>Erik og Tharmira har vokst faglig gjennom prosjektet</li>
+                <li><strong>Storkunde og landbruk i produksjon</strong> — plattformen klar for neste modell</li>
+              </ul>
+              <hr/>
+              <blockquote>Det handler ikke bare om commits og arkitektur — det handler om at <strong>et team ble bedre</strong>. Det er faglig-autoritet og varme.</blockquote>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Avslutning ──────────────────────────────────── -->
+        <section class="title-slide">
+          <h1>Takk! 🎂</h1>
+          <p class="subtitle">Henry Sjøen &amp; Ahmed Abdi</p>
+          <hr style="width:40%;margin:1em auto;"/>
+          <p class="small">SpareBank 1 · KFK · Miles · SVG Lokalcamp 2026</p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        slideNumber: 'c/t',
+        progress: true,
+        controls: true,
+        center: false,
+        transition: 'slide',
+        transitionSpeed: 'fast',
+        width: 1280,
+        height: 720,
+        margin: 0.06,
+        plugins: [],
+      });
+    </script>
+  </body>
+</html>
