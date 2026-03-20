@@ -251,6 +251,24 @@
           </div>
         </section>
 
+        <!-- ── 1b. KFK-teamet fullstendig ─────────────────────── -->
+        <section>
+          <span class="section-num">1 / 7 · ~1 min</span>
+          <h2>KFK-teamet fullstendig</h2>
+          <pre><code>    o      O       👩‍💼      🧮               📋
+  [0-0]  {===}  Aurélie   Erik           Tharmira
+  Henry  Ahmed  (leder) (matematiker) (dokumentasjon)
+
+  Miles-rolle: faglig-autoritet og varme
+  → setter standarden, rettledning, mentoring</code></pre>
+          <ul>
+            <li><strong>Aurélie</strong> — leder, tar kampene oppover i SB1-hierarkiet</li>
+            <li><strong>Erik</strong> — matematiker, forstår modellene dypt</li>
+            <li><strong>Tharmira</strong> — junior, vokser faglig gjennom prosjektet</li>
+            <li><strong>Henry + Ahmed</strong> — Miles-konsulenter: faglig-autoritet og varme</li>
+          </ul>
+        </section>
+
         <!-- ── 2a. Storkunde ───────────────────────────────── -->
         <section>
           <span class="section-num">2 / 7 · ~2 min</span>
@@ -325,6 +343,37 @@
           <blockquote>Begge i produksjon — kjerneverktøy i bankens lånesaksbehandling. Samme stack: React Router v7 + .NET + Caddy + AWS/Kubernetes</blockquote>
         </section>
 
+        <!-- ── 3a. Container-debatt ───────────────────────────── -->
+        <section>
+          <span class="section-num">3 / 7 · ~1,5 min</span>
+          <h2>Arkitektur og sky</h2>
+          <h3>Én container — den omstridte avgjørelsen</h3>
+          <pre><code>    o
+  [0-0]  "hva om vi putter
+   /|\    frontend, backend
+   / \    OG reverse proxy
+          i én container?"
+               |
+               v
+    O   "...det er ikke
+  {===}   sånn man gjør det"
+  / | \
+  / | \
+               |
+               v
+    o
+  [0-0]  *gjør det uansett*
+   /|\
+   / \
+               |
+               v
+    O
+  {===}  "...ok det funker
+  / | \   faktisk ganske bra"
+  / | \</code></pre>
+          <blockquote>Ahmed protesterte. Henry vant. Ahmed innrømmer at det funker.</blockquote>
+        </section>
+
         <!-- ── 3. Arkitektur ───────────────────────────────── -->
         <section>
           <span class="section-num">3 / 7 · ~1,5 min</span>
@@ -379,7 +428,12 @@
  |__________________________________|
 
      📦 KFK.Auth  📦 KFK.SB1SK
-     v2 -----> v3  (feb 2026)</code></pre>
+     v2 -----> v3  (feb 2026)
+
+              O
+            {===}  *leverer NuGet-pakke*
+            / | \
+             / \</code></pre>
           <div class="cols">
             <ul>
               <li><strong>kfk-ui</strong> — React-komponentbibliotek på SB1-designstandarder. Redigerbare tabeller, 8 diagramtyper, toast, DSCR-matrise. 100+ sider showcase-dokumentasjon.</li>
@@ -398,14 +452,44 @@
           <h2>Arbeidsmetodikk</h2>
           <h3>Henrys filosofier</h3>
           <div class="cols">
-            <div>
-              <p><strong>#1 — Abstraksjon</strong></p>
-              <blockquote>«En god abstraksjon gjør noe <strong>enklere å forstå</strong>. Ikke bare… abstrakt.»</blockquote>
-              <p><strong>#2 — Progressive enhancement</strong></p>
-              <blockquote>«Alle skjemaer skal fungere uten client-side JavaScript.»</blockquote>
-              <p><strong>#3 — Den indre kampen</strong></p>
-              <blockquote>«React Router v7 + SSR gjør jo .NET overflødig?… men. Ahmed er i rommet.»</blockquote>
-            </div>
+            <pre><code>  #1 — Abstraksjon
+
+      o
+    [0-0]  "en god abstraksjon gjør noe
+     /|\    ENKLERE Å FORSTÅ.
+     / \    ikke bare... abstrakt."
+
+  #2 — Progressive enhancement
+
+      o
+    [0-0]  "alle skjemaer skal fungere
+     /|\    uten client-side javascript"
+     / \
+
+    O     🧮        📋
+  {===}  Erik    Tharmira
+  / | \  "...men alle bruker jo javascript?"
+   / \
+
+      o
+    [0-0]   "det er ikke poenget"
+     /|\
+     / \
+
+  #3 — Den indre kampen
+
+      o   *tankeboble*
+    [0-0]    react router v7 + SSR...
+     /|\     .NET overflødig? ...men.
+     / \
+      O
+    {===}   *er i rommet*
+    / | \
+
+      o
+    [0-0]   ok. tapt kamp.
+     /|\
+     / \</code></pre>
             <div>
               <p class="small" style="margin-bottom:0.3em;font-weight:600;color:var(--col-heading)">Forbudte ting:</p>
               <ul class="forbidden" style="font-size:0.6em;list-style:none;margin-left:0">
@@ -467,6 +551,219 @@
               <p class="small"><strong>setup-local-dev.sh</strong> i hvert repo: sjekker secrets, genererer DB-passord, dreper og gjenoppretter SQL-container, kjører migrations + seed. Én kommando.</p>
             </div>
           </div>
+        </section>
+
+        <!-- ── 5c. Arbeidsmetodikk — Henry litt alt ──────────── -->
+        <section>
+          <span class="section-num">5 / 7 · ~2 min</span>
+          <h2>Arbeidsmetodikk</h2>
+          <h3>Henry «gjør litt backend her»</h3>
+          <div class="cols">
+            <pre><code>  Henry (frontend... og litt alt mulig)
+       o
+     [0-0]  "jeg gjør bare
+      /|\    litt backend her..."
+      / \
+            *åpner Dockerfile*
+            *endrer Kubernetes-config*
+            *skriver bash-script*
+            *ber Claude om et bash-script til*
+
+    O
+  {===}  "...det er ikke
+  / | \   'litt'"
+   / \
+
+  Henry + Claude = script-kiddie-symbiose
+
+      o  + [AI] = 650 linjer bash
+    [0-0]
+     /|\    kfk prs:
+     / \    - fzf med --listen (live reload)
+            - GraphQL mot GitHub API
+            - MD5-basert caching (5 min TTL)
+            - Slack-meldings-generator
+            - bakgrunns-preview-rendering
+            - two-step close via tempfiler
+
+    O
+  {===}  "trengte vi egentlig
+  / | \   alt dette for en
+   / \    PR-liste?"
+
+      o
+    [0-0]   "ja"
+     /|\
+     / \</code></pre>
+            <div>
+              <p><strong>kfk prs</strong></p>
+              <ul style="font-size:0.65em">
+                <li>fzf med <code>--listen</code> (live reload)</li>
+                <li>GraphQL mot GitHub API</li>
+                <li>MD5-basert caching (5 min TTL)</li>
+                <li>Slack-meldings-generator</li>
+                <li>Bakgrunns-preview-rendering</li>
+                <li>Two-step close-bekreftelse via tempfiler</li>
+              </ul>
+              <hr/>
+              <p><strong>kfk start</strong></p>
+              <ul style="font-size:0.65em">
+                <li>Åpner tmux, backend + frontend side om side</li>
+                <li>Mouse-støtte, åpner nettleseren automatisk</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── 5d. Arbeidsmetodikk — setup-local-dev.sh ──────── -->
+        <section>
+          <span class="section-num">5 / 7 · ~2 min</span>
+          <h2>Arbeidsmetodikk</h2>
+          <h3>setup-local-dev.sh — én kommando</h3>
+          <div class="cols">
+            <pre><code>  setup-local-dev.sh (finnes i hvert repo):
+    1. sjekker at alle secrets er satt
+       (og forteller deg nøyaktig hvilken
+        dotnet-kommando du må kjøre)
+    2. genererer tilfeldig DB-passord
+    3. dreper og gjenoppretter
+       SQL-container fra scratch
+    4. venter på "Service Broker manager
+       has started" i docker-loggene
+    5. kjører migrations + seeder data
+    6. printer triumferende avslutning 🎉
+
+      o   "én kommando, ferdig"
+    [0-0]
+     /|\
+     / \</code></pre>
+            <pre><code>    O   *åpner terminal*
+  {===}  docker rm -f storkunde-sql-local
+  / | \  docker run -d --name ...
+   / \   dotnet user-secrets set ...
+          dotnet ef database update ...
+          dotnet run -- seed
+
+          *kopierer fra README*
+          *funker første gang*
+
+      o   "...bruker du ikke
+    [0-0]   scriptet?"
+     /|\
+     / \
+
+    O   "scriptet er fint.
+  {===}  jeg foretrekker
+  / | \  å vite hva som
+   / \   skjer"</code></pre>
+          </div>
+        </section>
+
+        <!-- ── 5e. Arbeidsmetodikk — Aurélie ────────────────── -->
+        <section>
+          <span class="section-num">5 / 7 · ~2 min</span>
+          <h2>Arbeidsmetodikk</h2>
+          <h3>Aurélie tar kampene</h3>
+          <pre><code>  👩‍💼 Aurélie i møte med SB1-styringsgruppen:
+
+  SB1:  "vi ønsker at dere bruker
+         vår standard enterprise-
+         arkitektur med AutoMapper
+         og Repository-pattern"
+
+  👩‍💼:  "NON."
+        *knytter neve*
+        *bestiller kake til teamet*</code></pre>
+          <blockquote>Å ha en leder som tar skjold mot organisasjonsstøy er undervurdert. Henry og Ahmed kunne fokusere på faglig arbeid fordi Aurélie tok kampene. Det er <strong>faglig-autoritet og varme</strong> i praksis.</blockquote>
+        </section>
+
+        <!-- ── 6a. Tall — pappaperm + ferie ─────────────────── -->
+        <section>
+          <span class="section-num">6 / 7 · ~1 min</span>
+          <h2>Tall og vekst</h2>
+          <h3>mai–aug 2025: pappaperm + ferie</h3>
+          <div class="cols">
+            <pre><code>    o                          O
+  [0-0]  *borte i 3 mnd*     {===}  "ikke stress,
+   /|\   👶 + 🏖️             / | \   jeg tar det"
+   / \                        |
+                             / \
+                     ~130 commits alene
+                     ingen stopp i prod
+
+    O   "forresten,
+  {===}  noen må gjøre
+  / | \  litt frontend
+  / | \  mens du er borte"
+
+    O
+  {===}  *seufzer*
+  / | \
+  / | \   [React intensifies]</code></pre>
+            <pre><code>  ── panel 1 ──────────────────────────
+    O
+  {===}  "jeg fikset litt
+  / | \   på frontend-en
+   / \    mens du var borte"
+
+  ── panel 2 ──────────────────────────
+      o
+    [0-0]  "det ble bedre
+     /|\    nå, ikke sant?"
+     / \
+
+  ── panel 3 ──────────────────────────
+    O
+  {===}  :)
+  / | \
+   / \
+
+  ── panel 4 ──────────────────────────
+      o
+    [0-0]
+     /|\
+     / \
+
+        o
+      [0-0]  "ikke sant???"
+       /|\
+       / \</code></pre>
+          </div>
+        </section>
+
+        <!-- ── 6b. Tall — raskeste fingre i vesten ───────────── -->
+        <section>
+          <span class="section-num">6 / 7 · ~1 min</span>
+          <h2>Tall og vekst</h2>
+          <h3>17. februar 2026 — raskeste fingre i vesten</h3>
+          <pre><code>        ~~~~~ THE WEST ~~~~~
+   ____________________________
+  |  _   _   _   _   _   _    |
+  | |_| |_| |_| |_| |_| |_|   |  &lt;- tastatur
+  |___________________________|
+
+         o   *solnedgang*
+       [0-0]
+        /|\_[⌨️]
+        / \
+
+  "go ahead. make my commit."
+
+  commit #1    kl 08:03  ...pang
+  commit #2    kl 08:09  ...pang
+  commit #3    kl 08:16  ...pang
+     ...
+  commit #132  kl 15:58  ...pang
+
+        én commit hvert 7. minutt
+
+  *dagens milestone nådd*
+
+  👩‍💼  "JE COMMANDE UN GÂTEAU"
+
+    O   🎂🎂🎂🎂🎂
+  {===}
+  / | \  *spiser all kaken*</code></pre>
         </section>
 
         <!-- ── 6. Tall og vekst ────────────────────────────── -->
