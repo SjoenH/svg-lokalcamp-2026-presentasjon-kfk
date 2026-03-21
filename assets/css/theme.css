@@ -1,0 +1,87 @@
+/* ── Miles colour palette ─────────────────────────────── */
+:root {
+  --col-bg:      #fdf6ef;
+  --col-surface: #fbf0e5;
+  --col-border:  #ede0d8;
+  --col-text:    #131313;
+  --col-heading: #450d21;
+  --col-muted:   #643546;
+  --col-accent:  #ff303b;
+  --col-fix:     #2d8a4e;
+  --col-purple:  #5d3b58;
+  --col-yellow:  #c08b30;
+}
+
+/* ── Global scroll settings ────────────────────────────── */
+* {
+  scroll-behavior: smooth;
+}
+
+/* ── Custom scrollbar styling ──────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--col-surface);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--col-border);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--col-muted);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--col-border) var(--col-surface);
+}
+
+/* ── Base theme ───────────────────────────────────────── */
+.reveal-viewport { background: var(--col-bg); }
+
+.reveal {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 2rem;
+  color: var(--col-text);
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+  color: var(--col-heading);
+  text-transform: none;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.reveal h1 { font-size: 2.4em; }
+.reveal h2 { font-size: 1.5em; border-bottom: 3px solid var(--col-accent); padding-bottom: 0.15em; margin-bottom: 0.5em; }
+.reveal h3 { font-size: 1.1em; color: var(--col-muted); }
+
+.reveal section {
+  text-align: left;
+  overflow-y: auto;
+  max-height: 100%;
+  padding: 20px;
+}
+
+.reveal .slides {
+  overflow: visible !important;
+}
+
+.reveal .title-slide { text-align: center; }
+
+.reveal ul, .reveal ol {
+  margin-left: 1.2em;
+  overflow-y: auto;
+  max-height: 500px;
+}
+.reveal li { margin-bottom: 0.3em; }
+
+.reveal strong { color: var(--col-accent); }
+.reveal em { color: var(--col-muted); font-style: normal; font-weight: 500; }
