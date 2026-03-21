@@ -332,4 +332,80 @@
 
   window.AudienceManager = { handleConnection: handleConnection };
   window.AudienceStats = stats;
+
+  // ---- Stats slide live rendering ----
+  function topEntry(obj) {
+    var keys = Object.keys(obj);
+    if (!keys.length) return null;
+    return keys.reduce(function (a, b) { return obj[a] >= obj[b] ? a : b; });
+  }
+
+  function populateStatsSlide() {
+    var totalMessages = Object.values(stats.sentences).reduce(function (a, b) { return a + b; }, 0)
+                      + Object.values(stats.emotes).reduce(function (a, b) { return a + b; }, 0);
+
+    var p = document.querySelector('#stat-participants .stat-number');
+    var m = document.querySelector('#stat-messages .stat-number');
+    var mv = document.querySelector('#stat-moves .stat-number');
+    if (p) p.textContent = stats.peakCount || 0;
+    if (m) m.textContent = totalMessages;
+    if (mv) mv.textContent = stats.totalMoves;
+
+    var topSentId = topEntry(stats.sentences);
+    var topSentEl = document.querySelector('#stat-top-sentence .stat-highlight');
+    if (topSentEl) {
+      if (topSentId) {
+        var sent = (window.AUDIENCE_SENTENCES || []).find(function (x) { return x.id === topSentId; });
+        topSentEl.textContent = sent ? sent.text : topSentId;
+      } else {
+        topSentEl.textContent = 'ingen';
+      }
+    }
+
+    var topEmoteId = topEntry(stats.emotes);
+    var emojiEl = document.querySelector('#stat-top-emote .stat-emoji');
+    var emoteCountEl = document.querySelector('#stat-top-emote .stat-highlight');
+    if (topEmoteId) {
+      var emote = (window.AUDIENCE_EMOTES || []).find(function (x) { return x.id === topEmoteId; });
+      if (emojiEl) emojiEl.textContent = emote ? emote.emoji : topEmoteId;
+      if (emoteCountEl) emoteCountEl.textContent = stats.emotes[topEmoteId] + '×';
+    }
+
+    var activityCounts = {};
+    Object.keys(stats.activity).forEach(function (k) { activityCounts[k] = stats.activity[k].count; });
+    var mvpId = topEntry(activityCounts);
+    var mvpEl = document.querySelector('#stat-mvp .stat-highlight');
+    if (mvpEl) {
+      if (mvpId && stats.activity[mvpId] && stats.activity[mvpId].count > 0) {
+        mvpEl.textContent = stats.activity[mvpId].name + ' (' + stats.activity[mvpId].count + ' interaksjonar)';
+      } else {
+        mvpEl.textContent = 'ingen interaksjonar endå';
+      }
+    }
+  }
+
+  var statsInterval = null;
+
+  function initStatsSlide() {
+    if (window.Reveal) {
+      Reveal.addEventListener('slidechanged', function (e) {
+        var section = document.getElementById('slide-audience-stats');
+        if (e.currentSlide === section) {
+          populateStatsSlide();
+          if (!statsInterval) statsInterval = setInterval(populateStatsSlide, 1000);
+        } else {
+          clearInterval(statsInterval);
+          statsInterval = null;
+        }
+      });
+    }
+  }
+
+  // Run after Reveal is ready
+  function startStats() {
+    if (window.Reveal && Reveal.isReady()) initStatsSlide();
+    else if (window.Reveal) Reveal.addEventListener('ready', initStatsSlide);
+    else setTimeout(startStats, 200);
+  }
+  startStats();
 })();
