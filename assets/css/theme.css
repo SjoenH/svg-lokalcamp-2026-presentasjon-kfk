@@ -71,10 +71,6 @@
   padding: 8px 20px;
 }
 
-.reveal .slides {
-  overflow: visible !important;
-}
-
 .reveal .title-slide { text-align: center; }
 
 .reveal ul, .reveal ol {
