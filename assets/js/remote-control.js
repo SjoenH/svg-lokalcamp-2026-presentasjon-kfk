@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  var isPreview = new URLSearchParams(location.search).has('preview');
+
   let peer;
   let connections = [];
   let timerStartedAt = null;
@@ -132,5 +134,39 @@
     else setTimeout(start, 200);
   }
 
-  start();
+  if (!isPreview) {
+    start();
+  }
+
+  // postMessage handler — lets a parent page navigate this Reveal instance
+  (function () {
+    var pendingGoto = null;
+
+    window.addEventListener('message', function (e) {
+      if (!e.data || e.data.type !== 'reveal-goto') return;
+      var h = e.data.h || 0;
+      var v = e.data.v || 0;
+      if (window.Reveal && Reveal.isReady()) {
+        Reveal.slide(h, v);
+      } else {
+        pendingGoto = { h: h, v: v };
+      }
+    });
+
+    function drainPending() {
+      if (pendingGoto) { Reveal.slide(pendingGoto.h, pendingGoto.v); pendingGoto = null; }
+    }
+
+    if (window.Reveal && Reveal.isReady()) { /* already ready */ }
+    else if (window.Reveal) { Reveal.addEventListener('ready', drainPending); }
+    else {
+      var poll = setInterval(function () {
+        if (window.Reveal) {
+          clearInterval(poll);
+          if (Reveal.isReady()) drainPending();
+          else Reveal.addEventListener('ready', drainPending);
+        }
+      }, 100);
+    }
+  })();
 })();

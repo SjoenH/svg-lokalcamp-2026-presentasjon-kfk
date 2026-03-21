@@ -144,6 +144,17 @@
     }
     #log.visible { display: block; }
 
+    #preview-frame {
+      display: none;
+      width: 100%;
+      height: 170px;
+      border: none;
+      border-radius: 8px;
+      flex-shrink: 0;
+      pointer-events: none;
+      background: #000;
+    }
+
     /* ── Settings view ── */
     .settings-header {
       display: flex;
@@ -320,6 +331,8 @@
       <div id="timer">15:00</div>
     </div>
 
+    <iframe id="preview-frame" src="index.html?preview=1" tabindex="-1"></iframe>
+
     <div id="notes"></div>
 
     <div id="log"></div>
@@ -389,6 +402,13 @@
           </div>
           <div class="toggle" id="wake-toggle"></div>
         </div>
+        <div class="toggle-row">
+          <div class="toggle-label-wrap">
+            <span class="setting-label">Vis lysbiletvisning</span>
+            <span class="setting-sublabel">Viser aktuelt lysbilete på denne eininga</span>
+          </div>
+          <div class="toggle" id="preview-toggle"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -401,6 +421,7 @@
       fontScale:     'kfk.fontScale',
       timerTotal:    'kfk.timerTotal',
       keepAwake:     'kfk.keepAwake',
+      showPreview:   'kfk.showPreview',
     };
 
     function lsGet(key, def) {
@@ -414,6 +435,7 @@
     var fontScale     = parseFloat(lsGet(LS.fontScale, '1.0'));
     var timerTotal    = parseInt(lsGet(LS.timerTotal, '900'), 10);
     var keepAwake     = lsGet(LS.keepAwake, 'false') === 'true';
+    var showPreview   = lsGet(LS.showPreview, 'false') === 'true';
 
     // ── Elements ──
     var params     = new URLSearchParams(location.search);
@@ -437,7 +459,10 @@
     var timerMinus      = document.getElementById('timer-minus');
     var timerPlus       = document.getElementById('timer-plus');
     var wakeToggle      = document.getElementById('wake-toggle');
+    var previewToggle   = document.getElementById('preview-toggle');
+    var previewFrame    = document.getElementById('preview-frame');
 
+    var lastH = 0, lastV = 0;
     var conn;
 
     // ── Logging ──
@@ -611,6 +636,30 @@
       if (document.visibilityState === 'visible' && keepAwake) requestWakeLock();
     });
 
+    // ── Settings: slide preview ──
+    function sendToPreview(h, v) {
+      try {
+        previewFrame.contentWindow.postMessage({ type: 'reveal-goto', h: h, v: v || 0 }, '*');
+      } catch (e) {}
+    }
+
+    function updatePreviewVisibility() {
+      previewFrame.style.display = showPreview ? 'block' : 'none';
+      previewToggle.classList.toggle('on', showPreview);
+    }
+    updatePreviewVisibility();
+
+    previewToggle.addEventListener('click', function () {
+      showPreview = !showPreview;
+      lsSet(LS.showPreview, showPreview);
+      updatePreviewVisibility();
+      if (showPreview) sendToPreview(lastH, lastV);
+    });
+
+    previewFrame.addEventListener('load', function () {
+      if (showPreview) sendToPreview(lastH, lastV);
+    });
+
     // ── PeerJS connection ──
     if (targetId) {
       var peer = new Peer({ config: { iceServers: [
@@ -648,7 +697,10 @@
             return;
           }
           if (data.type !== 'state') return;
-          var current = (data.h || 0) + 1;
+          lastH = data.h || 0;
+          lastV = data.v || 0;
+          if (showPreview) sendToPreview(lastH, lastV);
+          var current = lastH + 1;
           counterEl.textContent = current + ' / ' + (data.total || '?');
           if (data.notes) {
             notesEl.innerHTML = data.notes.split('\n').filter(function (l) { return l.trim(); }).map(function (line) {
