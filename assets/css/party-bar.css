@@ -141,7 +141,7 @@
 #audience-qr-corner {
   position: fixed;
   bottom: 14px;
-  left: 14px;
+  right: 14px;
   z-index: 1001;
   pointer-events: none;
   display: flex;
