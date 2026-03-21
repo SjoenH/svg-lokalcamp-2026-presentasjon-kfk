@@ -6,8 +6,8 @@ const revealConfig = {
   center: false,
   transition: 'slide',
   transitionSpeed: 'fast',
-  width: 1280,
-  height: 720,
+  width: 1920,
+  height: 1080,
   margin: 0,
   plugins: [],
 

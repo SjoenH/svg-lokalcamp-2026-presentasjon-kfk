@@ -76,7 +76,7 @@
 .reveal ul, .reveal ol {
   margin-left: 1.2em;
   overflow-y: auto;
-  max-height: 500px;
+  max-height: 750px;
 }
 .reveal li { margin-bottom: 0.3em; }
 
