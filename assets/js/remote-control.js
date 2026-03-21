@@ -18,19 +18,22 @@
 
   updatePeerStatus();
 
+  var REMOTE_URL = new URL('remote.html?id=kfk-lokalcamp-2026', location.href).href;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var urlEl = document.getElementById('remote-url');
+    var qrEl = document.getElementById('remote-qr');
+    if (urlEl) { urlEl.textContent = REMOTE_URL; urlEl.href = REMOTE_URL; }
+    if (qrEl && window.QRCode) {
+      new QRCode(qrEl, { text: REMOTE_URL, width: 200, height: 200, colorDark: '#1a1a2e', colorLight: '#f0f0f0' });
+    }
+  });
+
   function init() {
     peer = new Peer('kfk-lokalcamp-2026', { config: { iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
     ]}});
-
-    var remoteUrl = new URL('remote.html?id=kfk-lokalcamp-2026', location.href).href;
-    var urlEl = document.getElementById('remote-url');
-    var qrEl = document.getElementById('remote-qr');
-    if (urlEl) { urlEl.textContent = remoteUrl; urlEl.href = remoteUrl; }
-    if (qrEl && window.QRCode) {
-      new QRCode(qrEl, { text: remoteUrl, width: 200, height: 200, colorDark: '#1a1a2e', colorLight: '#f0f0f0' });
-    }
 
     peer.on('open', function () {});
 
