@@ -4,6 +4,8 @@
   let peer;
   let connections = [];
   let timerStartedAt = null;
+  let fontScale = 1.0;
+  let timerTotal = 900;
 
   var peerStatus = document.createElement('div');
   peerStatus.id = 'peer-status';
@@ -51,17 +53,25 @@
       conn.on('open', function () {
         updatePeerStatus();
         sendStateTo(conn);
-        if (timerStartedAt !== null) conn.send({ type: 'timer', startedAt: timerStartedAt });
+        if (timerStartedAt !== null) conn.send({ type: 'timer', startedAt: timerStartedAt, total: timerTotal });
       });
       conn.on('data', function (data) {
         if (data.action === 'next') Reveal.next();
         else if (data.action === 'prev') Reveal.prev();
         else if (data.action === 'timer-start') {
           timerStartedAt = Date.now();
-          connections.forEach(function (c) { if (c.open) c.send({ type: 'timer', startedAt: timerStartedAt }); });
+          connections.forEach(function (c) { if (c.open) c.send({ type: 'timer', startedAt: timerStartedAt, total: timerTotal }); });
         } else if (data.action === 'timer-stop') {
           timerStartedAt = null;
           connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-stop' }); });
+        } else if (data.action === 'font-scale') {
+          fontScale = data.value;
+          Reveal.configure({ scale: fontScale });
+          Reveal.layout();
+          connections.forEach(function (c) { if (c.open) c.send({ type: 'font-scale', value: fontScale }); });
+        } else if (data.action === 'timer-duration') {
+          timerTotal = data.total;
+          connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-duration', total: timerTotal }); });
         }
       });
       conn.on('close', function () {
@@ -77,7 +87,7 @@
         connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-stop' }); });
       } else if (e.previousSlide && e.previousSlide === Reveal.getSlides()[0]) {
         timerStartedAt = Date.now();
-        connections.forEach(function (c) { if (c.open) c.send({ type: 'timer', startedAt: timerStartedAt }); });
+        connections.forEach(function (c) { if (c.open) c.send({ type: 'timer', startedAt: timerStartedAt, total: timerTotal }); });
       }
     });
   }
@@ -91,7 +101,11 @@
   }
 
   function sendStateTo(conn) {
-    if (conn.open) conn.send(getState());
+    if (conn.open) {
+      conn.send(getState());
+      conn.send({ type: 'font-scale', value: fontScale });
+      conn.send({ type: 'timer-duration', total: timerTotal });
+    }
   }
 
   function broadcastState() {

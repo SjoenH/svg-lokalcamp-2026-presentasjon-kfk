@@ -14,13 +14,22 @@
       height: 100dvh;
       display: flex;
       flex-direction: column;
-      padding: 1rem 1.25rem 1.5rem;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
       overflow: hidden;
-      gap: 0.75rem;
     }
 
+    /* ── Views ── */
+    #view-remote, #view-settings {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 1rem 1.25rem 1.5rem;
+      gap: 0.75rem;
+    }
+    #view-settings { display: none; }
+
+    /* ── Remote view ── */
     #header {
       display: flex;
       justify-content: space-between;
@@ -51,7 +60,6 @@
       padding: 0.9rem 1.1rem;
       background: #1a1a2e;
       border-radius: 8px;
-      font-size: 1.4rem;
       line-height: 1.7;
       text-align: left;
       overflow-y: auto;
@@ -80,6 +88,7 @@
       display: flex;
       gap: 1.25rem;
       flex-shrink: 0;
+      align-items: center;
     }
 
     button {
@@ -107,6 +116,21 @@
       background: #1d4ed8;
     }
 
+    #btn-gear {
+      flex: none;
+      width: 52px;
+      padding: 0;
+      height: 52px;
+      font-size: 1.4rem;
+      border-radius: 50%;
+      background: #1e1e3a;
+      color: #888;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #btn-gear:active { background: #2a2a50; }
+
     #log {
       display: none;
       flex-shrink: 0;
@@ -119,38 +143,300 @@
       text-align: left;
     }
     #log.visible { display: block; }
+
+    /* ── Settings view ── */
+    .settings-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    #btn-back {
+      flex: none;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      color: #60a5fa;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #btn-back:active { background: #1e1e3a; transform: none; }
+
+    .settings-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f0f0f0;
+    }
+
+    .settings-body {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .group-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #555;
+      padding: 0.5rem 0.2rem 0.1rem;
+    }
+
+    .setting-card {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .setting-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .setting-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .setting-sublabel {
+      font-size: 0.72rem;
+      color: #555;
+    }
+
+    .setting-value {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #60a5fa;
+      min-width: 3rem;
+      text-align: right;
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: #60a5fa;
+      cursor: pointer;
+    }
+
+    /* Stepper */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .stepper-btn {
+      flex: none;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      background: #2a2a50;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .stepper-btn:active { background: #3a3a70; transform: scale(0.93); }
+
+    .stepper-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #60a5fa;
+      flex: 1;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .toggle-label-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .toggle {
+      flex: none;
+      width: 50px;
+      height: 30px;
+      background: #333;
+      border-radius: 15px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle.on { background: #4ade80; }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: left 0.2s;
+    }
+    .toggle.on::after { left: 23px; }
   </style>
 </head>
 <body>
-  <div id="header">
-    <div id="counter">—/—</div>
-    <div id="timer">15:00</div>
+
+  <!-- ── Remote view ── -->
+  <div id="view-remote">
+    <div id="header">
+      <div id="counter">—/—</div>
+      <div id="timer">15:00</div>
+    </div>
+
+    <div id="notes"></div>
+
+    <div id="log"></div>
+
+    <div class="controls">
+      <button id="btn-prev" disabled>&#8592;</button>
+      <button id="btn-gear">⚙</button>
+      <button id="btn-next" disabled>&#8594;</button>
+    </div>
   </div>
 
-  <div id="notes"></div>
+  <!-- ── Settings view ── -->
+  <div id="view-settings">
+    <div class="settings-header">
+      <button id="btn-back">&#8592;</button>
+      <span class="settings-title">Innstillingar</span>
+    </div>
 
+    <div class="settings-body">
+      <p class="group-label">Notat</p>
+      <div class="setting-card">
+        <div class="setting-item">
+          <div class="setting-row">
+            <span class="setting-label">Skriftstorleik (notat)</span>
+            <span class="setting-value" id="notes-size-val">1.4rem</span>
+          </div>
+          <span class="setting-sublabel">Berre på denne eininga</span>
+          <input type="range" id="notes-size-slider" min="0.9" max="2.5" step="0.1" value="1.4">
+        </div>
+      </div>
 
-  <div id="log"></div>
+      <p class="group-label">Presentasjon</p>
+      <div class="setting-card">
+        <div class="setting-item">
+          <div class="setting-row">
+            <span class="setting-label">Skriftstorleik (lysbilete)</span>
+            <span class="setting-value" id="font-scale-val">100%</span>
+          </div>
+          <span class="setting-sublabel">Synkar til projektor via WebRTC</span>
+          <input type="range" id="font-scale-slider" min="0.7" max="1.5" step="0.05" value="1.0">
+        </div>
+      </div>
 
-  <div class="controls">
-    <button id="btn-prev" disabled>&#8592;</button>
-    <button id="btn-next" disabled>&#8594;</button>
+      <p class="group-label">Tidtakar</p>
+      <div class="setting-card">
+        <div class="setting-item">
+          <span class="setting-label">Varigheit</span>
+          <div class="stepper">
+            <button class="stepper-btn" id="timer-minus">&#8722;</button>
+            <div class="stepper-val" id="timer-val">15 min</div>
+            <button class="stepper-btn" id="timer-plus">&#43;</button>
+          </div>
+          <span class="setting-sublabel">Synkar til alle remote-einingar</span>
+        </div>
+      </div>
+
+      <p class="group-label">Skjerm</p>
+      <div class="setting-card">
+        <div class="toggle-row">
+          <div class="toggle-label-wrap">
+            <span class="setting-label">Hald skjermen vakken</span>
+            <span class="setting-sublabel">Krev Wake Lock API (iOS 16.4+, Chrome)</span>
+          </div>
+          <div class="toggle" id="wake-toggle"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script>
-    var params = new URLSearchParams(location.search);
-    var targetId = params.get('id');
+    // ── localStorage keys & defaults ──
+    var LS = {
+      notesFontSize: 'kfk.notesFontSize',
+      fontScale:     'kfk.fontScale',
+      timerTotal:    'kfk.timerTotal',
+      keepAwake:     'kfk.keepAwake',
+    };
 
-    var counterEl = document.getElementById('counter');
-    var notesEl = document.getElementById('notes');
+    function lsGet(key, def) {
+      var v = localStorage.getItem(key);
+      return v === null ? def : v;
+    }
+    function lsSet(key, val) { localStorage.setItem(key, String(val)); }
 
-    var btnPrev = document.getElementById('btn-prev');
-    var btnNext = document.getElementById('btn-next');
-    var logEl = document.getElementById('log');
+    // ── Settings state ──
+    var notesFontSize = parseFloat(lsGet(LS.notesFontSize, '1.4'));
+    var fontScale     = parseFloat(lsGet(LS.fontScale, '1.0'));
+    var timerTotal    = parseInt(lsGet(LS.timerTotal, '900'), 10);
+    var keepAwake     = lsGet(LS.keepAwake, 'false') === 'true';
+
+    // ── Elements ──
+    var params     = new URLSearchParams(location.search);
+    var targetId   = params.get('id');
+    var counterEl  = document.getElementById('counter');
+    var notesEl    = document.getElementById('notes');
+    var btnPrev    = document.getElementById('btn-prev');
+    var btnNext    = document.getElementById('btn-next');
+    var btnGear    = document.getElementById('btn-gear');
+    var btnBack    = document.getElementById('btn-back');
+    var logEl      = document.getElementById('log');
+    var viewRemote   = document.getElementById('view-remote');
+    var viewSettings = document.getElementById('view-settings');
+
+    // Settings controls
+    var notesSizeSlider = document.getElementById('notes-size-slider');
+    var notesSizeVal    = document.getElementById('notes-size-val');
+    var fontScaleSlider = document.getElementById('font-scale-slider');
+    var fontScaleVal    = document.getElementById('font-scale-val');
+    var timerValEl      = document.getElementById('timer-val');
+    var timerMinus      = document.getElementById('timer-minus');
+    var timerPlus       = document.getElementById('timer-plus');
+    var wakeToggle      = document.getElementById('wake-toggle');
 
     var conn;
 
+    // ── Logging ──
     function log(text, isError) {
       var ts = new Date().toISOString().substring(11, 19);
       var line = document.createElement('div');
@@ -165,47 +451,160 @@
       btnNext.disabled = !c;
     }
 
-    function send(action) {
-      if (conn && conn.open) conn.send({ action: action });
+    function send(action, extra) {
+      if (conn && conn.open) conn.send(Object.assign({ action: action }, extra));
     }
 
-    btnPrev.addEventListener('click', function () { send('prev'); });
-    btnNext.addEventListener('click', function () { send('next'); });
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowLeft') send('prev');
-      else if (e.key === 'ArrowRight' || e.key === ' ') send('next');
-    });
-
-    var timerEl = document.getElementById('timer');
-    var TOTAL = 15 * 60;
+    // ── Timer ──
+    var timerEl       = document.getElementById('timer');
     var timerInterval = null;
 
     function formatTime(seconds) {
       var abs = Math.abs(seconds);
-      var m = Math.floor(abs / 60);
-      var s = abs % 60;
+      var m   = Math.floor(abs / 60);
+      var s   = abs % 60;
       var str = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
       return seconds < 0 ? '+' + str : str;
     }
 
-    function startTimerFrom(startedAt) {
+    function startTimerFrom(startedAt, total) {
+      if (total !== undefined) {
+        timerTotal = total;
+        lsSet(LS.timerTotal, timerTotal);
+        updateTimerStepper();
+      }
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(function () {
-        var elapsed = Math.floor((Date.now() - startedAt) / 1000);
-        var remaining = TOTAL - elapsed;
+        var elapsed   = Math.floor((Date.now() - startedAt) / 1000);
+        var remaining = timerTotal - elapsed;
         timerEl.textContent = formatTime(remaining);
-        timerEl.className = remaining < 0 ? 'overtime' : remaining < 120 ? 'warning' : '';
+        timerEl.className   = remaining < 0 ? 'overtime' : remaining < 120 ? 'warning' : '';
       }, 500);
     }
 
     function stopTimer() {
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = null;
-      timerEl.textContent = '15:00';
-      timerEl.className = '';
+      timerEl.textContent = formatTime(timerTotal);
+      timerEl.className   = '';
     }
 
+    // ── Apply initial notes font size ──
+    function applyNotesFontSize(val) {
+      notesEl.style.fontSize = val + 'rem';
+    }
+    applyNotesFontSize(notesFontSize);
+    timerEl.textContent = formatTime(timerTotal);
+
+    // ── Navigation ──
+    btnPrev.addEventListener('click', function () { send('prev'); });
+    btnNext.addEventListener('click', function () { send('next'); });
+
+    document.addEventListener('keydown', function (e) {
+      if (viewSettings.style.display !== 'none') return;
+      if (e.key === 'ArrowLeft') send('prev');
+      else if (e.key === 'ArrowRight' || e.key === ' ') send('next');
+    });
+
+    // ── View switching ──
+    btnGear.addEventListener('click', function () {
+      viewRemote.style.display   = 'none';
+      viewSettings.style.display = 'flex';
+    });
+    btnBack.addEventListener('click', function () {
+      viewSettings.style.display = 'none';
+      viewRemote.style.display   = 'flex';
+    });
+
+    // ── Settings: notes font size ──
+    notesSizeSlider.value = notesFontSize;
+    notesSizeVal.textContent = notesFontSize.toFixed(1) + 'rem';
+
+    notesSizeSlider.addEventListener('input', function () {
+      notesFontSize = parseFloat(this.value);
+      notesSizeVal.textContent = notesFontSize.toFixed(1) + 'rem';
+      applyNotesFontSize(notesFontSize);
+      lsSet(LS.notesFontSize, notesFontSize);
+    });
+
+    // ── Settings: slide font scale ──
+    fontScaleSlider.value = fontScale;
+    fontScaleVal.textContent = Math.round(fontScale * 100) + '%';
+
+    fontScaleSlider.addEventListener('change', function () {
+      fontScale = parseFloat(this.value);
+      fontScaleVal.textContent = Math.round(fontScale * 100) + '%';
+      lsSet(LS.fontScale, fontScale);
+      send('font-scale', { value: fontScale });
+    });
+    fontScaleSlider.addEventListener('input', function () {
+      fontScaleVal.textContent = Math.round(parseFloat(this.value) * 100) + '%';
+    });
+
+    // ── Settings: timer duration ──
+    function updateTimerStepper() {
+      var mins = Math.round(timerTotal / 60);
+      timerValEl.textContent = mins + ' min';
+      timerMinus.disabled = mins <= 5;
+      timerPlus.disabled  = mins >= 60;
+    }
+    updateTimerStepper();
+
+    timerMinus.addEventListener('click', function () {
+      var mins = Math.round(timerTotal / 60);
+      if (mins <= 5) return;
+      timerTotal = (mins - 5) * 60;
+      lsSet(LS.timerTotal, timerTotal);
+      updateTimerStepper();
+      if (!timerInterval) timerEl.textContent = formatTime(timerTotal);
+      send('timer-duration', { total: timerTotal });
+    });
+
+    timerPlus.addEventListener('click', function () {
+      var mins = Math.round(timerTotal / 60);
+      if (mins >= 60) return;
+      timerTotal = (mins + 5) * 60;
+      lsSet(LS.timerTotal, timerTotal);
+      updateTimerStepper();
+      if (!timerInterval) timerEl.textContent = formatTime(timerTotal);
+      send('timer-duration', { total: timerTotal });
+    });
+
+    // ── Settings: keep screen awake ──
+    var wakeLockSentinel = null;
+
+    function updateWakeToggle() {
+      wakeToggle.classList.toggle('on', keepAwake);
+    }
+    updateWakeToggle();
+
+    async function requestWakeLock() {
+      if (!navigator.wakeLock) return;
+      try {
+        if (wakeLockSentinel) { wakeLockSentinel.release(); wakeLockSentinel = null; }
+        wakeLockSentinel = await navigator.wakeLock.request('screen');
+      } catch (e) { /* ignore */ }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLockSentinel) { wakeLockSentinel.release(); wakeLockSentinel = null; }
+    }
+
+    if (keepAwake) requestWakeLock();
+
+    wakeToggle.addEventListener('click', function () {
+      keepAwake = !keepAwake;
+      lsSet(LS.keepAwake, keepAwake);
+      updateWakeToggle();
+      if (keepAwake) requestWakeLock();
+      else releaseWakeLock();
+    });
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible' && keepAwake) requestWakeLock();
+    });
+
+    // ── PeerJS connection ──
     if (targetId) {
       var peer = new Peer({ config: { iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
@@ -222,13 +621,30 @@
         });
 
         conn.on('data', function (data) {
-          if (data.type === 'timer') { startTimerFrom(data.startedAt); return; }
+          if (data.type === 'timer') {
+            startTimerFrom(data.startedAt, data.total);
+            return;
+          }
           if (data.type === 'timer-stop') { stopTimer(); return; }
+          if (data.type === 'font-scale') {
+            fontScale = data.value;
+            lsSet(LS.fontScale, fontScale);
+            fontScaleSlider.value = fontScale;
+            fontScaleVal.textContent = Math.round(fontScale * 100) + '%';
+            return;
+          }
+          if (data.type === 'timer-duration') {
+            timerTotal = data.total;
+            lsSet(LS.timerTotal, timerTotal);
+            updateTimerStepper();
+            if (!timerInterval) timerEl.textContent = formatTime(timerTotal);
+            return;
+          }
           if (data.type !== 'state') return;
           var current = (data.h || 0) + 1;
           counterEl.textContent = current + ' / ' + (data.total || '?');
           if (data.notes) {
-            notesEl.innerHTML = data.notes.split('\n').filter(function(l) { return l.trim(); }).map(function(line) {
+            notesEl.innerHTML = data.notes.split('\n').filter(function (l) { return l.trim(); }).map(function (line) {
               var m = line.match(/^(Henry|Ahmed):\s*(.*)/);
               if (!m) return '<p class="line"><span style="color:#aaa">' + line + '</span></p>';
               var who = m[1].toLowerCase();
