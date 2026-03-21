@@ -45,7 +45,8 @@
 .reveal-viewport { background: var(--col-bg); }
 
 .reveal {
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-optical-sizing: auto;
   font-size: 2rem;
   color: var(--col-text);
 }
@@ -85,3 +86,10 @@
 
 .reveal strong { color: var(--col-accent); }
 .reveal em { color: var(--col-muted); font-style: normal; font-weight: 500; }
+
+.reveal code,
+.reveal pre,
+.reveal pre code,
+.reveal kbd {
+  font-family: "DM Mono", monospace;
+}
