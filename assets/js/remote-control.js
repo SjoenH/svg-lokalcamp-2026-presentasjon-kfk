@@ -11,25 +11,15 @@
       { urls: 'stun:stun1.l.google.com:19302' },
     ]}});
 
-    peer.on('open', function (id) {
-      var remoteUrl = new URL('remote.html?id=' + id, location.href).href;
-      var urlEl = document.getElementById('remote-url');
-      var qrEl = document.getElementById('remote-qr');
-      qrEl.innerHTML = '';
-      if (urlEl) {
-        urlEl.textContent = remoteUrl;
-        urlEl.href = remoteUrl;
-      }
-      if (qrEl && window.QRCode) {
-        new QRCode(qrEl, {
-          text: remoteUrl,
-          width: 200,
-          height: 200,
-          colorDark: '#1a1a2e',
-          colorLight: '#f0f0f0',
-        });
-      }
-    });
+    var remoteUrl = new URL('remote.html?id=kfk-lokalcamp-2026', location.href).href;
+    var urlEl = document.getElementById('remote-url');
+    var qrEl = document.getElementById('remote-qr');
+    if (urlEl) { urlEl.textContent = remoteUrl; urlEl.href = remoteUrl; }
+    if (qrEl && window.QRCode) {
+      new QRCode(qrEl, { text: remoteUrl, width: 200, height: 200, colorDark: '#1a1a2e', colorLight: '#f0f0f0' });
+    }
+
+    peer.on('open', function () {});
 
     peer.on('connection', function (conn) {
       connections.push(conn);
