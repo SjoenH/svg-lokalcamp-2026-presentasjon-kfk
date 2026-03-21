@@ -1,0 +1,22 @@
+<!-- ── 5g. Arbeidsmetodikk — setup-local-dev.sh ──────── -->
+<section>
+  <span class="section-num">5 / 7 · ~0,5 min</span>
+  <h2>Arbeidsmetodikk</h2>
+  <h3>setup-local-dev.sh — én kommando</h3>
+  <pre><code>  setup-local-dev.sh (finnes i hvert repo):
+    1. sjekker at alle secrets er satt
+       (og forteller deg nøyaktig hvilken
+        dotnet-kommando du må kjøre)
+    2. genererer tilfeldig DB-passord
+    3. dreper og gjenoppretter
+       SQL-container fra scratch
+    4. venter på "Service Broker manager
+       has started" i docker-loggene
+    5. kjører migrations + seeder data
+    6. printer triumferende avslutning 🎉
+
+      o   "én kommando, ferdig"
+    [0-0]
+     /|\
+     / \</code></pre>
+</section>

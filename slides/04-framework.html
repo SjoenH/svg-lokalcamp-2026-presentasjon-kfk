@@ -1,0 +1,32 @@
+<!-- ── 4. KFK-rammeverket ──────────────────────────── -->
+<section>
+  <span class="section-num">4 / 7 · ~2 min</span>
+  <h2>KFK-rammeverket</h2>
+  <pre><code>  ___________________________________________
+ |  storkunde  |  landbruk  |  neste...    |
+ |-------------|------------|--------------|
+ |    kfk-ui   |   start    | &lt;- Henry     |
+ |-------------|------------|              |
+ | KFK.Auth + KFK.SB1SK     | &lt;- Ahmed     |
+ |----------------------------------|
+ |   kfk (CLI)                      |
+ |__________________________________|
+
+     📦 KFK.Auth  📦 KFK.SB1SK
+     v2 -----> v3  (feb 2026)
+
+              O
+            {===}  *leverer NuGet-pakke*
+            / | \
+             / \</code></pre>
+  <div class="cols">
+    <ul>
+      <li><strong>kfk-ui</strong> — React-komponentbibliotek på SB1-designstandarder. Redigerbare tabeller, 8 diagramtyper, toast, DSCR-matrise. 100+ sider showcase-dokumentasjon.</li>
+      <li><strong>start</strong> — referansemal: klon og ha fungerende app fra dag én (auth, CSRF, Prometheus, Dependabot, CodeQL)</li>
+    </ul>
+    <ul>
+      <li><strong>kfk</strong>-CLI — <code>kfk fix</code> (Biome + CSharpier), <code>kfk logs</code> (fuzzy pod-søk), <code>kfk prs</code> (interaktiv PR-innboks via GitHub GraphQL)</li>
+      <li><strong>KFK.Auth + KFK.SB1SK</strong> — NuGet-pakker for JWT-autentisering og SB1 Kundeinfo-API</li>
+    </ul>
+  </div>
+</section>

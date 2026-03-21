@@ -1,0 +1,38 @@
+<!-- ── 3. Arkitektur ───────────────────────────────── -->
+<section>
+  <span class="section-num">3 / 7 · ~1,5 min</span>
+  <h2>Arkitektur og sky</h2>
+  <div class="cols">
+    <pre><code>  Kubernetes Pod
+  +--------------------------+
+  |    Kubernetes Pod        |
+  |  +--------------------+  |
+  |  |   Caddy  :8080     |  |
+  |  |  /api/* --> :5000  |  |
+  |  |  /*     --> :3000  |  |
+  |  +--+-------------+--+  |
+  |     |             |     |
+  |  +--+--+     +----+--+  |
+  |  |.NET |     |React  |  |
+  |  |:5000|     |:3000  |  |
+  |  +-----+     +-------+  |
+  +--------------------------+
+              |
+           [MSSQL]
+          (on-prem,
+         et sted i
+          Bjørvika)</code></pre>
+    <div>
+      <ul>
+        <li><strong>Én container, tre prosesser:</strong> Caddy + .NET + React</li>
+        <li>Ingen CORS · atomisk deploy — alltid i sync</li>
+        <li>Ekstern Caddy-proxy injiserer JWT i header</li>
+        <li>Push til <code>main</code> → GitHub Actions → Docker → AWS ECR → Kubernetes</li>
+        <li>Ingen manuelle steg fra commit til produksjon</li>
+      </ul>
+      <hr/>
+      <p class="small">AWS eu-north-1 · Kubernetes + Istio · MSSQL on-prem · Cognito OIDC</p>
+    </div>
+  </div>
+  <blockquote><strong>Ingen CORS + atomisk deploy</strong> — én container-valget var omstridt, men det funker.</blockquote>
+</section>

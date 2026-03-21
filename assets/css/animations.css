@@ -1,0 +1,145 @@
+/* ── Animations & Transitions ─────────────────────────── */
+
+/* Smooth transitions for all elements */
+.reveal section {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Custom fragment fade-up animation */
+.reveal .fragment.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease-out;
+}
+.reveal .fragment.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Custom fragment slide-in-left */
+.reveal .fragment.slide-in-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: all 0.5s ease-out;
+}
+.reveal .fragment.slide-in-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Custom fragment slide-in-right */
+.reveal .fragment.slide-in-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: all 0.5s ease-out;
+}
+.reveal .fragment.slide-in-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Bounce animation for chips */
+@keyframes bounce-in {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.reveal .chip {
+  animation: bounce-in 0.5s ease-out;
+}
+
+/* Pulse animation for bigstats */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.reveal .bigstat {
+  animation: pulse 1s ease-in-out;
+}
+
+/* Smooth hover effect for blockquotes */
+.reveal blockquote {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.reveal blockquote:hover {
+  transform: translateX(5px);
+  box-shadow: -5px 0 15px rgba(0,0,0,0.05);
+}
+
+/* Two-column fade-in with stagger */
+.reveal .cols > *:first-child {
+  animation: fade-slide-left 0.6s ease-out;
+}
+.reveal .cols > *:last-child {
+  animation: fade-slide-right 0.6s ease-out;
+}
+
+@keyframes fade-slide-left {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fade-slide-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ASCII art smooth appearance */
+.reveal pre code {
+  animation: ascii-appear 0.4s ease-out;
+}
+
+@keyframes ascii-appear {
+  from { opacity: 0; filter: blur(3px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+/* Heading underline animation */
+.reveal h2 {
+  transition: border-color 0.3s ease;
+}
+
+/* Table row highlight on appear */
+.reveal table tr {
+  animation: row-appear 0.5s ease-out backwards;
+}
+.reveal table tr:nth-child(1) { animation-delay: 0.1s; }
+.reveal table tr:nth-child(2) { animation-delay: 0.2s; }
+.reveal table tr:nth-child(3) { animation-delay: 0.3s; }
+.reveal table tr:nth-child(4) { animation-delay: 0.4s; }
+.reveal table tr:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes row-appear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Section number fade-in */
+.reveal .section-num {
+  animation: fade-in 0.5s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Forbidden list items appear one by one */
+.reveal .forbidden li {
+  animation: item-pop 0.4s ease-out backwards;
+}
+.reveal .forbidden li:nth-child(1) { animation-delay: 0.1s; }
+.reveal .forbidden li:nth-child(2) { animation-delay: 0.15s; }
+.reveal .forbidden li:nth-child(3) { animation-delay: 0.2s; }
+.reveal .forbidden li:nth-child(4) { animation-delay: 0.25s; }
+.reveal .forbidden li:nth-child(5) { animation-delay: 0.3s; }
+.reveal .forbidden li:nth-child(6) { animation-delay: 0.35s; }
+.reveal .forbidden li:nth-child(7) { animation-delay: 0.4s; }
+.reveal .forbidden li:nth-child(8) { animation-delay: 0.45s; }
+.reveal .forbidden li:nth-child(9) { animation-delay: 0.5s; }
+
+@keyframes item-pop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
