@@ -36,9 +36,11 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       gap: 0.75rem;
       text-align: center;
+      overflow: hidden;
+      min-height: 0;
+      padding-top: 0.5rem;
     }
 
     #counter {
@@ -57,15 +59,18 @@
     }
 
     #notes {
-      margin-top: 1.25rem;
       padding: 0.9rem 1.1rem;
       background: #1a1a2e;
       border-radius: 8px;
       font-size: 1.05rem;
       line-height: 1.7;
+      width: 100%;
       max-width: 340px;
       text-align: left;
       display: none;
+      overflow-y: auto;
+      flex-shrink: 1;
+      min-height: 0;
     }
     #notes.visible { display: block; }
     #notes .line { margin-bottom: 0.6rem; }
@@ -210,6 +215,7 @@
     }
 
     function send(action) {
+      log('→ ' + action + ' (open=' + !!(conn && conn.open) + ')');
       if (conn && conn.open) conn.send({ action: action });
     }
 
