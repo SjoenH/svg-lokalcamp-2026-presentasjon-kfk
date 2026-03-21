@@ -324,6 +324,10 @@
 
     <div id="log"></div>
 
+    <button id="btn-reconnect" style="display:none;flex-shrink:0;background:#7f1d1d;border-radius:12px;font-size:1rem;padding:1rem;" onclick="location.reload()">
+      ↺ Koble til på nytt
+    </button>
+
     <div class="controls">
       <button id="btn-prev" disabled>&#8592;</button>
       <button id="btn-gear">⚙</button>
@@ -446,9 +450,12 @@
       if (isError) logEl.classList.add('visible');
     }
 
+    var btnReconnect = document.getElementById('btn-reconnect');
+
     function setConnected(c) {
       btnPrev.disabled = !c;
       btnNext.disabled = !c;
+      btnReconnect.style.display = c ? 'none' : 'block';
     }
 
     function send(action, extra) {
