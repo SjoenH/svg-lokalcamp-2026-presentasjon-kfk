@@ -344,6 +344,24 @@
       cursor: pointer;
     }
 
+    .setting-row-right {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .reset-btn {
+      background: none;
+      border: none;
+      color: #555;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0 0.1rem;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .reset-btn:hover { color: #60a5fa; }
+
     /* Stepper */
     .stepper {
       display: flex;
@@ -458,7 +476,10 @@
         <div class="setting-item">
           <div class="setting-row">
             <span class="setting-label">Skriftstorleik (notat)</span>
-            <span class="setting-value" id="notes-size-val">1.4rem</span>
+            <div class="setting-row-right">
+              <button class="reset-btn" id="notes-size-reset">↺</button>
+              <span class="setting-value" id="notes-size-val">1.4rem</span>
+            </div>
           </div>
           <span class="setting-sublabel">Berre på denne eininga</span>
           <input type="range" id="notes-size-slider" min="0.9" max="2.5" step="0.1" value="1.4">
@@ -470,10 +491,13 @@
         <div class="setting-item">
           <div class="setting-row">
             <span class="setting-label">Skriftstorleik (lysbilete)</span>
-            <span class="setting-value" id="font-scale-val">100%</span>
+            <div class="setting-row-right">
+              <button class="reset-btn" id="font-scale-reset">↺</button>
+              <span class="setting-value" id="font-scale-val">100%</span>
+            </div>
           </div>
           <span class="setting-sublabel">Synkar til projektor via WebRTC</span>
-          <input type="range" id="font-scale-slider" min="0.7" max="1.5" step="0.05" value="1.0">
+          <input type="range" id="font-scale-slider" min="1.0" max="3.0" step="0.05" value="1.0">
         </div>
       </div>
 
@@ -562,10 +586,12 @@
     var funGrid      = document.getElementById('fun-grid');
 
     // Settings controls
-    var notesSizeSlider = document.getElementById('notes-size-slider');
-    var notesSizeVal    = document.getElementById('notes-size-val');
-    var fontScaleSlider = document.getElementById('font-scale-slider');
-    var fontScaleVal    = document.getElementById('font-scale-val');
+    var notesSizeSlider  = document.getElementById('notes-size-slider');
+    var notesSizeVal     = document.getElementById('notes-size-val');
+    var notesSizeReset   = document.getElementById('notes-size-reset');
+    var fontScaleSlider  = document.getElementById('font-scale-slider');
+    var fontScaleVal     = document.getElementById('font-scale-val');
+    var fontScaleReset   = document.getElementById('font-scale-reset');
     var timerValEl      = document.getElementById('timer-val');
     var timerMinus      = document.getElementById('timer-minus');
     var timerPlus       = document.getElementById('timer-plus');
@@ -715,6 +741,13 @@
       applyNotesFontSize(notesFontSize);
       lsSet(LS.notesFontSize, notesFontSize);
     });
+    notesSizeReset.addEventListener('click', function () {
+      notesFontSize = 1.4;
+      notesSizeSlider.value = notesFontSize;
+      notesSizeVal.textContent = notesFontSize.toFixed(1) + 'rem';
+      applyNotesFontSize(notesFontSize);
+      lsSet(LS.notesFontSize, notesFontSize);
+    });
 
     // ── Settings: slide font scale ──
     fontScaleSlider.value = fontScale;
@@ -728,6 +761,13 @@
     });
     fontScaleSlider.addEventListener('input', function () {
       fontScaleVal.textContent = Math.round(parseFloat(this.value) * 100) + '%';
+    });
+    fontScaleReset.addEventListener('click', function () {
+      fontScale = 1.0;
+      fontScaleSlider.value = fontScale;
+      fontScaleVal.textContent = '100%';
+      lsSet(LS.fontScale, fontScale);
+      send('font-scale', { value: fontScale });
     });
 
     // ── Settings: timer duration ──
