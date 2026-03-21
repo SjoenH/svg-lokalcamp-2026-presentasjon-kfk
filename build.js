@@ -6,6 +6,7 @@ const slides = [
   '00-title',
   '01-customer-intro',
   '01b-team',
+  '01c-fjor-vs-naa',
   '02a-storkunde',
   '02b-landbruk',
   '03a-container-debate',
@@ -54,6 +55,7 @@ fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true });
 });
 
 fs.writeFileSync(path.join(__dirname, 'dist', 'index.html'), html, 'utf8');
+fs.copyFileSync(path.join(__dirname, 'remote.html'), path.join(__dirname, 'dist', 'remote.html'));
 fs.copyFileSync(path.join(__dirname, '.nojekyll'), path.join(__dirname, 'dist', '.nojekyll'));
 
 console.log('Build complete → dist/index.html');
