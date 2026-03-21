@@ -5,6 +5,19 @@
   let connections = [];
   let timerStartedAt = null;
 
+  var peerStatus = document.createElement('div');
+  peerStatus.id = 'peer-status';
+  peerStatus.style.cssText = 'position:fixed;bottom:0.7rem;left:0.9rem;font-size:0.6rem;font-family:system-ui,sans-serif;color:rgba(255,255,255,0.3);pointer-events:none;z-index:9999;letter-spacing:0.03em;';
+  document.body.appendChild(peerStatus);
+
+  function updatePeerStatus() {
+    var open = connections.filter(function (c) { return c.open; }).length;
+    peerStatus.textContent = open > 0 ? '⬤ ' + open + ' remote' + (open > 1 ? 's' : '') : '○ ingen remote';
+    peerStatus.style.color = open > 0 ? 'rgba(74,222,128,0.5)' : 'rgba(255,255,255,0.2)';
+  }
+
+  updatePeerStatus();
+
   function init() {
     peer = new Peer('kfk-lokalcamp-2026', { config: { iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
@@ -24,6 +37,7 @@
     peer.on('connection', function (conn) {
       connections.push(conn);
       conn.on('open', function () {
+        updatePeerStatus();
         sendStateTo(conn);
         if (timerStartedAt !== null) conn.send({ type: 'timer', startedAt: timerStartedAt });
       });
@@ -40,6 +54,7 @@
       });
       conn.on('close', function () {
         connections = connections.filter(function (c) { return c !== conn; });
+        updatePeerStatus();
       });
     });
 
