@@ -14,76 +14,72 @@
       height: 100dvh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 2rem 1.5rem 3rem;
+      padding: 1rem 1.25rem 1.5rem;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
       overflow: hidden;
-    }
-
-    #status {
-      font-size: 0.8rem;
-      color: #666;
-      letter-spacing: 0.04em;
-      transition: color 0.3s;
-    }
-    #status.connected { color: #4ade80; }
-    #status.error { color: #f87171; }
-
-    #slide-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       gap: 0.75rem;
-      text-align: center;
-      overflow: hidden;
-      min-height: 0;
-      padding-top: 0.5rem;
+    }
+
+    #header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-shrink: 0;
     }
 
     #counter {
-      font-size: 3.5rem;
-      font-weight: 800;
-      color: #fff;
-      line-height: 1;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #888;
       font-variant-numeric: tabular-nums;
     }
 
-    #slide-title {
+    #timer {
       font-size: 1rem;
-      color: #999;
-      max-width: 280px;
-      line-height: 1.4;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: #4ade80;
+      letter-spacing: 0.04em;
+      transition: color 0.4s;
     }
+    #timer.warning { color: #fbbf24; }
+    #timer.overtime { color: #f87171; }
 
     #notes {
+      flex: 1;
       padding: 0.9rem 1.1rem;
       background: #1a1a2e;
       border-radius: 8px;
       font-size: 1.05rem;
       line-height: 1.7;
-      width: 100%;
-      max-width: 340px;
       text-align: left;
-      display: none;
       overflow-y: auto;
-      flex-shrink: 1;
       min-height: 0;
     }
-    #notes.visible { display: block; }
+    #notes:empty { display: none; }
     #notes .line { margin-bottom: 0.6rem; }
     #notes .line:last-child { margin-bottom: 0; }
     #notes .speaker { font-weight: 700; margin-right: 0.3em; }
     #notes .henry .speaker { color: #60a5fa; }
     #notes .ahmed .speaker { color: #fb923c; }
 
+    #no-id {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      text-align: center;
+      color: #666;
+    }
+    #no-id p { max-width: 260px; line-height: 1.5; }
+
     .controls {
       display: flex;
       gap: 1.25rem;
-      width: 100%;
-      max-width: 380px;
+      flex-shrink: 0;
     }
 
     button {
@@ -111,64 +107,30 @@
       background: #1d4ed8;
     }
 
-    #timer-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    #timer {
-      font-size: 2rem;
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
-      color: #4ade80;
-      letter-spacing: 0.04em;
-      transition: color 0.4s;
-    }
-    #timer.warning { color: #fbbf24; }
-    #timer.overtime { color: #f87171; }
-
-#no-id {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      flex: 1;
-      text-align: center;
-      color: #666;
-    }
-    #no-id p { max-width: 260px; line-height: 1.5; }
-
     #log {
-      width: 100%;
-      max-width: 380px;
+      display: none;
+      flex-shrink: 0;
       max-height: 7rem;
       overflow-y: auto;
       font-size: 0.65rem;
       font-family: monospace;
-      color: #555;
+      color: #f87171;
       line-height: 1.5;
       text-align: left;
     }
+    #log.visible { display: block; }
   </style>
 </head>
 <body>
-  <div id="status">Kobler til…</div>
-
-  <div id="slide-info" hidden>
+  <div id="header">
     <div id="counter">—/—</div>
-    <div id="slide-title"></div>
-    <div id="notes"></div>
+    <div id="timer">15:00</div>
   </div>
+
+  <div id="notes"></div>
 
   <div id="no-id" hidden>
     <p>Åpne presentasjonen og trykk <strong>R</strong> for å få QR-koden.</p>
-  </div>
-
-  <div id="timer-wrap">
-    <div id="timer">15:00</div>
   </div>
 
   <div id="log"></div>
@@ -183,30 +145,22 @@
     var params = new URLSearchParams(location.search);
     var targetId = params.get('id');
 
-    var statusEl = document.getElementById('status');
-    var slideInfo = document.getElementById('slide-info');
-    var noId = document.getElementById('no-id');
     var counterEl = document.getElementById('counter');
-    var titleEl = document.getElementById('slide-title');
     var notesEl = document.getElementById('notes');
+    var noId = document.getElementById('no-id');
     var btnPrev = document.getElementById('btn-prev');
     var btnNext = document.getElementById('btn-next');
+    var logEl = document.getElementById('log');
 
     var conn;
 
-    var logEl = document.getElementById('log');
-
-    function setStatus(text, cls) {
-      statusEl.textContent = text;
-      statusEl.className = cls || '';
-    }
-
-    function log(text) {
+    function log(text, isError) {
       var ts = new Date().toISOString().substring(11, 19);
       var line = document.createElement('div');
       line.textContent = ts + ' ' + text;
       logEl.appendChild(line);
       logEl.scrollTop = logEl.scrollHeight;
+      if (isError) logEl.classList.add('visible');
     }
 
     function setConnected(c) {
@@ -215,7 +169,6 @@
     }
 
     function send(action) {
-      log('→ ' + action + ' (open=' + !!(conn && conn.open) + ')');
       if (conn && conn.open) conn.send({ action: action });
     }
 
@@ -252,13 +205,8 @@
     }
 
     if (!targetId) {
-      setStatus('Ingen ID i URL');
       noId.hidden = false;
-      slideInfo.hidden = true;
     } else {
-      slideInfo.hidden = false;
-
-      log('Oppretter peer…');
       var peer = new Peer({ config: { iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
@@ -266,13 +214,10 @@
 
       peer.on('open', function (id) {
         log('Peer klar, id=' + id.substring(0, 8) + '…');
-        setStatus('Tilkobler presentasjon…');
-        log('Kobler til ' + targetId.substring(0, 8) + '…');
         conn = peer.connect(targetId, { reliable: true });
 
         conn.on('open', function () {
           log('Tilkoblet ✓');
-          setStatus('Tilkoblet', 'connected');
           setConnected(true);
         });
 
@@ -282,7 +227,6 @@
           if (data.type !== 'state') return;
           var current = (data.h || 0) + 1;
           counterEl.textContent = current + ' / ' + (data.total || '?');
-          titleEl.textContent = data.title || '';
           if (data.notes) {
             notesEl.innerHTML = data.notes.split('\n').filter(function(l) { return l.trim(); }).map(function(line) {
               var m = line.match(/^(Henry|Ahmed):\s*(.*)/);
@@ -290,22 +234,18 @@
               var who = m[1].toLowerCase();
               return '<p class="line ' + who + '"><span class="speaker">' + m[1] + ':</span><span style="color:#e2e8f0">' + m[2] + '</span></p>';
             }).join('');
-            notesEl.classList.add('visible');
           } else {
             notesEl.innerHTML = '';
-            notesEl.classList.remove('visible');
           }
         });
 
         conn.on('close', function () {
-          log('Kobling lukket');
-          setStatus('Frakoblet', 'error');
+          log('Kobling lukket', true);
           setConnected(false);
         });
 
         conn.on('error', function (err) {
-          log('Koblingsfeil: ' + (err && err.message ? err.message : err));
-          setStatus('Tilkoblingsfeil', 'error');
+          log('Koblingsfeil: ' + (err && err.message ? err.message : err), true);
           setConnected(false);
         });
 
@@ -315,8 +255,7 @@
       });
 
       peer.on('error', function (err) {
-        log('Peer-feil: ' + err.type + (err.message ? ' — ' + err.message : ''));
-        setStatus('Feil: ' + err.type, 'error');
+        log('Peer-feil: ' + err.type + (err.message ? ' — ' + err.message : ''), true);
         setConnected(false);
       });
     }
