@@ -9,8 +9,6 @@
   box-shadow: none;
   white-space: pre;
   overflow-x: auto;
-  overflow-y: auto;
-  max-height: 825px;
   width: 100%;
   margin: 0.5em 0;
 }
@@ -34,8 +32,6 @@
   font-style: normal;
   width: 100%;
   box-shadow: none;
-  overflow-y: auto;
-  max-height: 450px;
 }
 
 .reveal blockquote strong { color: var(--col-yellow); }
@@ -81,20 +77,12 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.2em;
   align-items: start;
-  overflow-y: auto;
-  max-height: 900px;
-}
-.cols > * {
-  overflow-y: auto;
-  max-height: 900px;
 }
 .cols3 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 1em;
   align-items: start;
-  overflow-y: auto;
-  max-height: 900px;
 }
 
 /* ── Big stat ─────────────────────────────────────────── */
