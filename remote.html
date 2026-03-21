@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Remote — KFK 2026</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f0f1a;
+      color: #f0f0f0;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2rem 1.5rem 3rem;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      overflow: hidden;
+    }
+
+    #status {
+      font-size: 0.8rem;
+      color: #666;
+      letter-spacing: 0.04em;
+      transition: color 0.3s;
+    }
+    #status.connected { color: #4ade80; }
+    #status.error { color: #f87171; }
+
+    #slide-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      text-align: center;
+    }
+
+    #counter {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #slide-title {
+      font-size: 1rem;
+      color: #999;
+      max-width: 280px;
+      line-height: 1.4;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1.25rem;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    button {
+      flex: 1;
+      padding: 1.75rem 0;
+      font-size: 2.25rem;
+      border: none;
+      border-radius: 16px;
+      background: #1e1e3a;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.1s;
+      touch-action: manipulation;
+    }
+
+    button:active {
+      background: #2a2a50;
+      transform: scale(0.95);
+    }
+
+    #btn-next {
+      background: #1e3a8a;
+    }
+    #btn-next:active {
+      background: #1d4ed8;
+    }
+
+    #no-id {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex: 1;
+      text-align: center;
+      color: #666;
+    }
+    #no-id p { max-width: 260px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div id="status">Kobler til…</div>
+
+  <div id="slide-info" hidden>
+    <div id="counter">—/—</div>
+    <div id="slide-title"></div>
+  </div>
+
+  <div id="no-id" hidden>
+    <p>Åpne presentasjonen og trykk <strong>R</strong> for å få QR-koden.</p>
+  </div>
+
+  <div class="controls">
+    <button id="btn-prev" disabled>&#8592;</button>
+    <button id="btn-next" disabled>&#8594;</button>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script>
+    var params = new URLSearchParams(location.search);
+    var targetId = params.get('id');
+
+    var statusEl = document.getElementById('status');
+    var slideInfo = document.getElementById('slide-info');
+    var noId = document.getElementById('no-id');
+    var counterEl = document.getElementById('counter');
+    var titleEl = document.getElementById('slide-title');
+    var btnPrev = document.getElementById('btn-prev');
+    var btnNext = document.getElementById('btn-next');
+
+    var conn;
+
+    function setStatus(text, cls) {
+      statusEl.textContent = text;
+      statusEl.className = cls || '';
+    }
+
+    function setConnected(c) {
+      btnPrev.disabled = !c;
+      btnNext.disabled = !c;
+    }
+
+    function send(action) {
+      if (conn && conn.open) conn.send({ action: action });
+    }
+
+    btnPrev.addEventListener('click', function () { send('prev'); });
+    btnNext.addEventListener('click', function () { send('next'); });
+
+    if (!targetId) {
+      setStatus('Ingen ID i URL');
+      noId.hidden = false;
+      slideInfo.hidden = true;
+    } else {
+      slideInfo.hidden = false;
+
+      var peer = new Peer();
+
+      peer.on('open', function () {
+        setStatus('Tilkobler presentasjon…');
+        conn = peer.connect(targetId, { reliable: true });
+
+        conn.on('open', function () {
+          setStatus('Tilkoblet', 'connected');
+          setConnected(true);
+        });
+
+        conn.on('data', function (data) {
+          if (data.type !== 'state') return;
+          var current = (data.h || 0) + 1;
+          counterEl.textContent = current + ' / ' + (data.total || '?');
+          titleEl.textContent = data.title || '';
+        });
+
+        conn.on('close', function () {
+          setStatus('Frakoblet', 'error');
+          setConnected(false);
+        });
+
+        conn.on('error', function () {
+          setStatus('Tilkoblingsfeil', 'error');
+          setConnected(false);
+        });
+      });
+
+      peer.on('error', function (err) {
+        setStatus('Feil: ' + err.type, 'error');
+        setConnected(false);
+      });
+    }
+  </script>
+</body>
+</html>
