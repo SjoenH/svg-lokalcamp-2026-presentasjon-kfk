@@ -3,6 +3,7 @@
 
   let peer;
   let connections = [];
+  let timerStartedAt = null;
 
   function init() {
     peer = new Peer();
@@ -29,24 +30,44 @@
 
     peer.on('connection', function (conn) {
       connections.push(conn);
-      conn.on('open', function () { sendStateTo(conn); });
+      conn.on('open', function () {
+        sendStateTo(conn);
+        if (timerStartedAt !== null) conn.send({ type: 'timer', startedAt: timerStartedAt });
+      });
       conn.on('data', function (data) {
         if (data.action === 'next') Reveal.next();
         else if (data.action === 'prev') Reveal.prev();
+        else if (data.action === 'timer-start') {
+          timerStartedAt = Date.now();
+          connections.forEach(function (c) { if (c.open) c.send({ type: 'timer', startedAt: timerStartedAt }); });
+        } else if (data.action === 'timer-stop') {
+          timerStartedAt = null;
+          connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-stop' }); });
+        }
       });
       conn.on('close', function () {
         connections = connections.filter(function (c) { return c !== conn; });
       });
     });
 
-    Reveal.addEventListener('slidechanged', broadcastState);
+    Reveal.addEventListener('slidechanged', function (e) {
+      broadcastState();
+      if (e.indexh === 0) {
+        timerStartedAt = null;
+        connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-stop' }); });
+      } else if (e.previousSlide && e.previousSlide === Reveal.getSlides()[0]) {
+        timerStartedAt = Date.now();
+        connections.forEach(function (c) { if (c.open) c.send({ type: 'timer', startedAt: timerStartedAt }); });
+      }
+    });
   }
 
   function getState() {
     var idx = Reveal.getIndices();
     var slide = Reveal.getCurrentSlide();
     var title = slide ? (slide.querySelector('h1,h2,h3') || {}).textContent || '' : '';
-    return { type: 'state', h: idx.h, v: idx.v || 0, total: Reveal.getTotalSlides(), title: title.trim() };
+    var notes = slide ? (slide.querySelector('aside.notes') || {}).textContent || '' : '';
+    return { type: 'state', h: idx.h, v: idx.v || 0, total: Reveal.getTotalSlides(), title: title.trim(), notes: notes.trim() };
   }
 
   function sendStateTo(conn) {

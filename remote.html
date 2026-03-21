@@ -56,6 +56,24 @@
       line-height: 1.4;
     }
 
+    #notes {
+      margin-top: 1.25rem;
+      padding: 0.9rem 1.1rem;
+      background: #1a1a2e;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      max-width: 340px;
+      text-align: left;
+      display: none;
+    }
+    #notes.visible { display: block; }
+    #notes .line { margin-bottom: 0.6rem; }
+    #notes .line:last-child { margin-bottom: 0; }
+    #notes .speaker { font-weight: 700; margin-right: 0.3em; }
+    #notes .henry .speaker { color: #60a5fa; }
+    #notes .ahmed .speaker { color: #fb923c; }
+
     .controls {
       display: flex;
       gap: 1.25rem;
@@ -88,7 +106,25 @@
       background: #1d4ed8;
     }
 
-    #no-id {
+    #timer-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    #timer {
+      font-size: 2rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: #4ade80;
+      letter-spacing: 0.04em;
+      transition: color 0.4s;
+    }
+    #timer.warning { color: #fbbf24; }
+    #timer.overtime { color: #f87171; }
+
+#no-id {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -107,10 +143,15 @@
   <div id="slide-info" hidden>
     <div id="counter">—/—</div>
     <div id="slide-title"></div>
+    <div id="notes"></div>
   </div>
 
   <div id="no-id" hidden>
     <p>Åpne presentasjonen og trykk <strong>R</strong> for å få QR-koden.</p>
+  </div>
+
+  <div id="timer-wrap">
+    <div id="timer">15:00</div>
   </div>
 
   <div class="controls">
@@ -128,6 +169,7 @@
     var noId = document.getElementById('no-id');
     var counterEl = document.getElementById('counter');
     var titleEl = document.getElementById('slide-title');
+    var notesEl = document.getElementById('notes');
     var btnPrev = document.getElementById('btn-prev');
     var btnNext = document.getElementById('btn-next');
 
@@ -150,6 +192,35 @@
     btnPrev.addEventListener('click', function () { send('prev'); });
     btnNext.addEventListener('click', function () { send('next'); });
 
+    var timerEl = document.getElementById('timer');
+    var TOTAL = 15 * 60;
+    var timerInterval = null;
+
+    function formatTime(seconds) {
+      var abs = Math.abs(seconds);
+      var m = Math.floor(abs / 60);
+      var s = abs % 60;
+      var str = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+      return seconds < 0 ? '+' + str : str;
+    }
+
+    function startTimerFrom(startedAt) {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(function () {
+        var elapsed = Math.floor((Date.now() - startedAt) / 1000);
+        var remaining = TOTAL - elapsed;
+        timerEl.textContent = formatTime(remaining);
+        timerEl.className = remaining < 0 ? 'overtime' : remaining < 120 ? 'warning' : '';
+      }, 500);
+    }
+
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+      timerEl.textContent = '15:00';
+      timerEl.className = '';
+    }
+
     if (!targetId) {
       setStatus('Ingen ID i URL');
       noId.hidden = false;
@@ -169,10 +240,24 @@
         });
 
         conn.on('data', function (data) {
+          if (data.type === 'timer') { startTimerFrom(data.startedAt); return; }
+          if (data.type === 'timer-stop') { stopTimer(); return; }
           if (data.type !== 'state') return;
           var current = (data.h || 0) + 1;
           counterEl.textContent = current + ' / ' + (data.total || '?');
           titleEl.textContent = data.title || '';
+          if (data.notes) {
+            notesEl.innerHTML = data.notes.split('\n').filter(function(l) { return l.trim(); }).map(function(line) {
+              var m = line.match(/^(Henry|Ahmed):\s*(.*)/);
+              if (!m) return '<p class="line"><span style="color:#aaa">' + line + '</span></p>';
+              var who = m[1].toLowerCase();
+              return '<p class="line ' + who + '"><span class="speaker">' + m[1] + ':</span><span style="color:#e2e8f0">' + m[2] + '</span></p>';
+            }).join('');
+            notesEl.classList.add('visible');
+          } else {
+            notesEl.innerHTML = '';
+            notesEl.classList.remove('visible');
+          }
         });
 
         conn.on('close', function () {

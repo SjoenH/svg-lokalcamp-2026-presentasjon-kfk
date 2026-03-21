@@ -35,4 +35,11 @@
     </div>
   </div>
   <blockquote><strong>Ingen CORS + atomisk deploy</strong> — én container-valget var omstridt, men det funker.</blockquote>
+  <aside class="notes">
+Henry: Én container, tre prosesser. Caddy på port 8080 ruter API-trafikk til .NET og alt annet til React. Frontend og backend er alltid i sync fordi de deployes som en enhet.
+
+Ahmed: Autentisering skjer via en ekstern Caddy-proxy som validerer SB1-sesjonen og injiserer en JWT-header. Backend validerer med vår egen NuGet-pakke.
+
+Henry: Og pipeline er helautomatisk — push til main, GitHub Actions, Docker-bygg, ECR, Kubernetes rolling update.
+  </aside>
 </section>
