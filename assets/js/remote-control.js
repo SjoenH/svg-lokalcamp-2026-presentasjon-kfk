@@ -73,8 +73,8 @@
           connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-stop' }); });
         } else if (data.action === 'font-scale') {
           fontScale = data.value;
-          Reveal.configure({ scale: fontScale });
-          Reveal.layout();
+          var revealEl = document.querySelector('.reveal');
+          if (revealEl) revealEl.style.fontSize = (fontScale * 2) + 'rem';
           connections.forEach(function (c) { if (c.open) c.send({ type: 'font-scale', value: fontScale }); });
         } else if (data.action === 'timer-duration') {
           timerTotal = data.total;
