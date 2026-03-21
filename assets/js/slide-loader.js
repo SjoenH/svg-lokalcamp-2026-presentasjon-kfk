@@ -1,6 +1,7 @@
 // Array of slide files in presentation order
 const slides = [
   '00-title',
+  '01a-om-oss',
   '01-customer-intro',
   '01b-team',
   '01c-fjor-vs-naa',
