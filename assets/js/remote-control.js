@@ -6,7 +6,10 @@
   let timerStartedAt = null;
 
   function init() {
-    peer = new Peer();
+    peer = new Peer({ config: { iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+    ]}});
 
     peer.on('open', function (id) {
       var remoteUrl = new URL('remote.html?id=' + id, location.href).href;
