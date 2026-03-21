@@ -131,6 +131,102 @@
     }
     #btn-gear:active { background: #2a2a50; }
 
+    #btn-fun {
+      flex: none;
+      width: 52px;
+      padding: 0;
+      height: 52px;
+      font-size: 1.4rem;
+      border-radius: 50%;
+      background: #1e1e3a;
+      color: #888;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #btn-fun:active { background: #2a2a50; }
+
+    /* ── Fun view ── */
+    #view-fun {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      padding: 1rem 1.25rem 1.5rem;
+      gap: 0.75rem;
+    }
+
+    .fun-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    #btn-fun-back {
+      position: absolute;
+      left: 0;
+      flex: none;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      color: #60a5fa;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #btn-fun-back:active { background: #1e1e3a; transform: none; }
+
+    .fun-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f0f0f0;
+    }
+
+    #fun-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .fun-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 8px;
+      border-radius: 16px;
+      border: none;
+      background: #1e1e3a;
+      color: white;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.1s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fun-btn:active, .fun-btn.flash {
+      transform: scale(0.92);
+      background: #2a2a50;
+    }
+    .fun-btn .btn-emoji {
+      font-size: 2.2rem;
+      margin-bottom: 6px;
+      line-height: 1;
+    }
+    .fun-btn .btn-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
     #log {
       display: none;
       flex-shrink: 0;
@@ -344,6 +440,7 @@
     <div class="controls">
       <button id="btn-prev">&#8592;</button>
       <button id="btn-gear">⚙</button>
+      <button id="btn-fun">🎉</button>
       <button id="btn-next">&#8594;</button>
     </div>
   </div>
@@ -413,7 +510,17 @@
     </div>
   </div>
 
+  <!-- ── Fun view ── -->
+  <div id="view-fun">
+    <div class="fun-header">
+      <button id="btn-fun-back">&#8592;</button>
+      <span class="fun-title">🎉 Fun</span>
+    </div>
+    <div id="fun-grid"></div>
+  </div>
+
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="assets/js/fun-config.js"></script>
   <script>
     // ── localStorage keys & defaults ──
     var LS = {
@@ -449,6 +556,10 @@
     var logEl      = document.getElementById('log');
     var viewRemote   = document.getElementById('view-remote');
     var viewSettings = document.getElementById('view-settings');
+    var viewFun      = document.getElementById('view-fun');
+    var btnFun       = document.getElementById('btn-fun');
+    var btnFunBack   = document.getElementById('btn-fun-back');
+    var funGrid      = document.getElementById('fun-grid');
 
     // Settings controls
     var notesSizeSlider = document.getElementById('notes-size-slider');
@@ -558,6 +669,7 @@
 
     document.addEventListener('keydown', function (e) {
       if (viewSettings.style.display !== 'none') return;
+      if (viewFun.style.display !== 'none') return;
       if (e.key === 'ArrowLeft') { e.preventDefault(); navigatePrev(); }
       else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigateNext(); }
     });
@@ -570,6 +682,27 @@
     btnBack.addEventListener('click', function () {
       viewSettings.style.display = 'none';
       viewRemote.style.display   = 'flex';
+    });
+    btnFun.addEventListener('click', function () {
+      viewRemote.style.display = 'none';
+      viewFun.style.display    = 'flex';
+    });
+    btnFunBack.addEventListener('click', function () {
+      viewFun.style.display    = 'none';
+      viewRemote.style.display = 'flex';
+    });
+
+    // ── Fun grid ──
+    FUN_CONFIG.forEach(function (cfg) {
+      var btn = document.createElement('button');
+      btn.className = 'fun-btn';
+      btn.innerHTML = '<span class="btn-emoji">' + cfg.emoji + '</span><span class="btn-label">' + cfg.label + '</span>';
+      btn.addEventListener('click', function () {
+        send('fun', { id: cfg.id });
+        btn.classList.add('flash');
+        setTimeout(function () { btn.classList.remove('flash'); }, 200);
+      });
+      funGrid.appendChild(btn);
     });
 
     // ── Settings: notes font size ──

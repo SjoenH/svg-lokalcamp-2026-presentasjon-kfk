@@ -9,6 +9,11 @@
   let fontScale = 1.0;
   let timerTotal = 900;
 
+  let funPrevAudio = null;
+  let funDismissTimeout = null;
+  const funAudio = {};
+  FUN_CONFIG.forEach(function (cfg) { funAudio[cfg.id] = new Audio(cfg.src); });
+
   var peerStatus = document.createElement('div');
   peerStatus.id = 'peer-status';
   peerStatus.style.cssText = 'position:fixed;bottom:0.7rem;left:0.9rem;font-size:0.6rem;font-family:system-ui,sans-serif;color:rgba(255,255,255,0.3);pointer-events:none;z-index:9999;letter-spacing:0.03em;';
@@ -74,6 +79,24 @@
         } else if (data.action === 'timer-duration') {
           timerTotal = data.total;
           connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-duration', total: timerTotal }); });
+        } else if (data.action === 'fun') {
+          var cfg = FUN_CONFIG.find(function (c) { return c.id === data.id; });
+          if (!cfg) return;
+          if (funPrevAudio) { funPrevAudio.pause(); funPrevAudio.currentTime = 0; }
+          if (funDismissTimeout) clearTimeout(funDismissTimeout);
+          var audio = funAudio[data.id];
+          audio.currentTime = 0;
+          audio.play().catch(function () {});
+          funPrevAudio = audio;
+          var overlay = document.getElementById('fun-overlay');
+          var progressEl = overlay.querySelector('.fun-progress');
+          overlay.querySelector('.fun-emoji').textContent = cfg.emoji;
+          overlay.querySelector('.fun-text').textContent  = cfg.text;
+          progressEl.classList.remove('animated');
+          void progressEl.offsetWidth;
+          progressEl.classList.add('animated');
+          overlay.classList.add('visible');
+          funDismissTimeout = setTimeout(function () { overlay.classList.remove('visible'); }, 3000);
         }
       });
       conn.on('close', function () {

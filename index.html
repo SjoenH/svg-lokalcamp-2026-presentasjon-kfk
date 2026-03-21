@@ -18,6 +18,62 @@
       #remote-close { display: block; margin: 1.2rem auto 0; background: #333; border: none; color: #fff; font-size: 1rem; padding: 0.5rem 1.5rem; border-radius: 6px; cursor: pointer; }
       #remote-close:hover { background: #444; }
       #remote-hint { position: fixed; bottom: 1rem; right: 1rem; font-size: 0.6rem; color: rgba(255,255,255,0.25); font-family: system-ui, sans-serif; pointer-events: none; }
+
+      #fun-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(2px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s;
+      }
+      #fun-overlay.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+      .fun-emoji {
+        font-size: 8rem;
+        line-height: 1;
+        margin-bottom: 1rem;
+      }
+      .fun-text {
+        font-size: 5rem;
+        font-weight: 900;
+        color: white;
+        text-align: center;
+        font-family: system-ui, sans-serif;
+        text-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+      }
+      .fun-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 6px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 0 3px 3px 0;
+      }
+      .fun-progress.animated {
+        animation: funProgress 3s linear forwards;
+      }
+      @keyframes funProgress {
+        from { width: 100%; }
+        to   { width: 0%; }
+      }
+      #fun-overlay.visible .fun-emoji {
+        animation: funBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes funBounce {
+        from { transform: scale(0.3); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+      }
     </style>
 
     <!-- Google Fonts: DM Sans + DM Mono -->
@@ -47,6 +103,12 @@
     </dialog>
     <div id="remote-hint">R = remote</div>
 
+    <div id="fun-overlay">
+      <div class="fun-emoji"></div>
+      <div class="fun-text"></div>
+      <div class="fun-progress"></div>
+    </div>
+
     <!-- Reveal.js core -->
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 
@@ -68,6 +130,7 @@
     <!-- Remote control via PeerJS (WebRTC) -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="assets/js/fun-config.js"></script>
     <script src="assets/js/remote-control.js"></script>
   </body>
 </html>
