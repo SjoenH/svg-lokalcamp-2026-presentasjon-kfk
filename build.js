@@ -44,8 +44,11 @@ html = html.replace(
   `$1\n${slidesHtml}\n        $2`
 );
 
-// Remove slide-loader.js (not needed — slides are inlined)
-html = html.replace(/\s*<script src="assets\/js\/slide-loader\.js"><\/script>\n?/, '\n');
+// Remove slide-loader.js and replace with direct Reveal.initialize call
+html = html.replace(
+  /\s*<script src="assets\/js\/slide-loader\.js"><\/script>\n?/,
+  '\n    <script>document.addEventListener("DOMContentLoaded", function () { Reveal.initialize(revealConfig); });</script>\n'
+);
 
 fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true });
 
