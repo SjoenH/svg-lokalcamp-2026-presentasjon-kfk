@@ -5,6 +5,24 @@
   var audienceMembers = {};
   var nextPosition = 0;
 
+  // ---- Stats tracking ----
+  var stats = {
+    peakCount: 0,
+    totalJoins: 0,
+    sentences: {},   // sentenceId → count
+    emotes: {},      // emoteId → count
+    totalMoves: 0,
+    activity: {},    // connId → { name, charId, count }
+  };
+
+  function trackActivity(connId) {
+    if (!stats.activity[connId]) {
+      var m = audienceMembers[connId];
+      stats.activity[connId] = { name: m ? m.name : '?', charId: m ? m.charId : '', count: 0 };
+    }
+    stats.activity[connId].count++;
+  }
+
   var wrap = document.getElementById('party-bar-wrap');
 
   // ---- Slot width based on member count ----
@@ -183,6 +201,11 @@
           bubbleTimeout: null,
         };
 
+        stats.totalJoins++;
+        stats.activity[conn.peer] = { name: name, charId: charId, count: 0 };
+        var currentCount = Object.keys(audienceMembers).length;
+        if (currentCount > stats.peakCount) stats.peakCount = currentCount;
+
         renderPartyBar();
 
         if (conn.open) {
@@ -195,15 +218,25 @@
       } else if (data.type === 'audience-speak') {
         var sentenceId = String(data.sentenceId || '');
         var sentence = (window.AUDIENCE_SENTENCES || []).find(function (s) { return s.id === sentenceId; });
-        if (sentence) showBubble(conn.peer, sentence.text);
+        if (sentence) {
+          showBubble(conn.peer, sentence.text);
+          stats.sentences[sentenceId] = (stats.sentences[sentenceId] || 0) + 1;
+          trackActivity(conn.peer);
+        }
 
       } else if (data.type === 'audience-emote') {
         var emoteId = String(data.emoteId || '');
         var emote = (window.AUDIENCE_EMOTES || []).find(function (e) { return e.id === emoteId; });
-        if (emote) showEmote(conn.peer, emote.emoji);
+        if (emote) {
+          showEmote(conn.peer, emote.emoji);
+          stats.emotes[emoteId] = (stats.emotes[emoteId] || 0) + 1;
+          trackActivity(conn.peer);
+        }
 
       } else if (data.type === 'audience-move') {
         moveChar(conn.peer, data.direction === 'right' ? 'right' : 'left');
+        stats.totalMoves++;
+        trackActivity(conn.peer);
       }
     });
 
@@ -298,4 +331,5 @@
   start();
 
   window.AudienceManager = { handleConnection: handleConnection };
+  window.AudienceStats = stats;
 })();

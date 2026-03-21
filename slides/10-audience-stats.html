@@ -1,0 +1,147 @@
+<section id="slide-audience-stats" style="text-align:center;">
+  <h2>Publikumsrapport 📊</h2>
+  <p style="opacity:0.6;margin-bottom:1.5rem;font-size:0.7em;">Kva skjedde eigentleg?</p>
+
+  <div id="audience-stats-grid" style="
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:1rem;
+    margin-bottom:1.5rem;
+  ">
+    <div class="stat-card" id="stat-participants">
+      <div class="stat-number">—</div>
+      <div class="stat-label">deltakarar</div>
+    </div>
+    <div class="stat-card" id="stat-messages">
+      <div class="stat-number">—</div>
+      <div class="stat-label">meldingar</div>
+    </div>
+    <div class="stat-card" id="stat-moves">
+      <div class="stat-number">—</div>
+      <div class="stat-label">forflyttingar</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+    <div class="stat-card" id="stat-top-sentence">
+      <div class="stat-emoji">💬</div>
+      <div class="stat-highlight">—</div>
+      <div class="stat-label">mest sagt</div>
+    </div>
+    <div class="stat-card" id="stat-top-emote">
+      <div class="stat-emoji">—</div>
+      <div class="stat-highlight"></div>
+      <div class="stat-label">mest brukt emote</div>
+    </div>
+  </div>
+
+  <div class="stat-card" id="stat-mvp" style="max-width:400px;margin:0 auto;">
+    <div class="stat-emoji">🏆</div>
+    <div class="stat-highlight">—</div>
+    <div class="stat-label">mest aktiv deltakar</div>
+  </div>
+
+  <style>
+    .stat-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 1rem 0.75rem;
+    }
+    .stat-number {
+      font-size: 2.4em;
+      font-weight: 900;
+      color: #7dd3fc;
+      line-height: 1;
+    }
+    .stat-emoji {
+      font-size: 1.8em;
+      line-height: 1.4;
+    }
+    .stat-highlight {
+      font-size: 1em;
+      font-weight: 700;
+      color: #f0f0f0;
+      margin: 0.2em 0;
+    }
+    .stat-label {
+      font-size: 0.55em;
+      opacity: 0.5;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+  </style>
+
+  <aside class="notes">Vis statistikk frå publikumsinteraksjonen.</aside>
+</section>
+
+<script>
+(function () {
+  var section = document.getElementById('slide-audience-stats');
+  if (!section) return;
+
+  function pad(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function topEntry(obj) {
+    var keys = Object.keys(obj);
+    if (!keys.length) return null;
+    return keys.reduce(function (a, b) { return obj[a] >= obj[b] ? a : b; });
+  }
+
+  function populate() {
+    var s = window.AudienceStats;
+    if (!s) return;
+
+    var totalMessages = Object.values(s.sentences).reduce(function (a, b) { return a + b; }, 0)
+                      + Object.values(s.emotes).reduce(function (a, b) { return a + b; }, 0);
+
+    document.querySelector('#stat-participants .stat-number').textContent = s.peakCount || 0;
+    document.querySelector('#stat-messages .stat-number').textContent = totalMessages;
+    document.querySelector('#stat-moves .stat-number').textContent = s.totalMoves;
+
+    var topSentId = topEntry(s.sentences);
+    var topSentEl = document.querySelector('#stat-top-sentence .stat-highlight');
+    if (topSentId) {
+      var sent = (window.AUDIENCE_SENTENCES || []).find(function (x) { return x.id === topSentId; });
+      topSentEl.textContent = sent ? sent.text : topSentId;
+    } else {
+      topSentEl.textContent = 'ingen';
+    }
+
+    var topEmoteId = topEntry(s.emotes);
+    var topEmoteEmojiEl = document.querySelector('#stat-top-emote .stat-emoji');
+    var topEmoteCountEl = document.querySelector('#stat-top-emote .stat-highlight');
+    if (topEmoteId) {
+      var emote = (window.AUDIENCE_EMOTES || []).find(function (x) { return x.id === topEmoteId; });
+      topEmoteEmojiEl.textContent = emote ? emote.emoji : topEmoteId;
+      topEmoteCountEl.textContent = s.emotes[topEmoteId] + '×';
+    }
+
+    var mvpId = topEntry(Object.fromEntries
+      ? Object.fromEntries(Object.entries(s.activity).map(function (e) { return [e[0], e[1].count]; }))
+      : (function () {
+          var o = {};
+          Object.keys(s.activity).forEach(function (k) { o[k] = s.activity[k].count; });
+          return o;
+        })()
+    );
+    var mvpEl = document.querySelector('#stat-mvp .stat-highlight');
+    if (mvpId && s.activity[mvpId] && s.activity[mvpId].count > 0) {
+      mvpEl.textContent = s.activity[mvpId].name + ' (' + s.activity[mvpId].count + ' interaksjonar)';
+    } else {
+      mvpEl.textContent = 'ingen interaksjonar endå';
+    }
+  }
+
+  // Populate when this slide becomes active
+  if (window.Reveal) {
+    Reveal.addEventListener('slidechanged', function (e) {
+      if (e.currentSlide === section) populate();
+    });
+    // Also populate immediately if already on this slide
+    if (Reveal.isReady() && Reveal.getCurrentSlide() === section) populate();
+  }
+})();
+</script>
