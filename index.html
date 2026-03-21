@@ -23,6 +23,35 @@
         --col-yellow:  #c08b30;
       }
 
+      /* ── Global scroll settings ────────────────────────────── */
+      * {
+        scroll-behavior: smooth;
+      }
+
+      /* ── Custom scrollbar styling ──────────────────────────── */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--col-surface);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--col-border);
+        border-radius: 4px;
+        transition: background 0.2s;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--col-muted);
+      }
+
+      /* Firefox scrollbar */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--col-border) var(--col-surface);
+      }
+
       /* ── Base theme ───────────────────────────────────────── */
       .reveal-viewport { background: var(--col-bg); }
 
@@ -45,11 +74,24 @@
       .reveal h2 { font-size: 1.5em; border-bottom: 3px solid var(--col-accent); padding-bottom: 0.15em; margin-bottom: 0.5em; }
       .reveal h3 { font-size: 1.1em; color: var(--col-muted); }
 
-      .reveal section { text-align: left; }
+      .reveal section {
+        text-align: left;
+        overflow-y: auto;
+        max-height: 100%;
+        padding: 20px;
+      }
+
+      .reveal .slides {
+        overflow: visible !important;
+      }
 
       .reveal .title-slide { text-align: center; }
 
-      .reveal ul, .reveal ol { margin-left: 1.2em; }
+      .reveal ul, .reveal ol {
+        margin-left: 1.2em;
+        overflow-y: auto;
+        max-height: 500px;
+      }
       .reveal li { margin-bottom: 0.3em; }
 
       .reveal strong { color: var(--col-accent); }
@@ -91,6 +133,8 @@
         font-style: normal;
         width: 100%;
         box-shadow: none;
+        overflow-y: auto;
+        max-height: 300px;
       }
 
       .reveal blockquote strong { color: var(--col-yellow); }
@@ -136,12 +180,20 @@
         grid-template-columns: 1fr 1fr;
         gap: 1.2em;
         align-items: start;
+        overflow-y: auto;
+        max-height: 600px;
+      }
+      .cols > * {
+        overflow-y: auto;
+        max-height: 600px;
       }
       .cols3 {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         gap: 1em;
         align-items: start;
+        overflow-y: auto;
+        max-height: 600px;
       }
 
       /* ── Big stat ─────────────────────────────────────────── */
