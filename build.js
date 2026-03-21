@@ -34,6 +34,7 @@ fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true });
 
 fs.writeFileSync(path.join(__dirname, 'dist', 'index.html'), html, 'utf8');
 fs.copyFileSync(path.join(__dirname, 'remote.html'), path.join(__dirname, 'dist', 'remote.html'));
+fs.copyFileSync(path.join(__dirname, 'audience.html'), path.join(__dirname, 'dist', 'audience.html'));
 fs.copyFileSync(path.join(__dirname, '.nojekyll'), path.join(__dirname, 'dist', '.nojekyll'));
 
 console.log('Build complete → dist/index.html');
