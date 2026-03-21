@@ -135,6 +135,18 @@
       color: #666;
     }
     #no-id p { max-width: 260px; line-height: 1.5; }
+
+    #log {
+      width: 100%;
+      max-width: 380px;
+      max-height: 7rem;
+      overflow-y: auto;
+      font-size: 0.65rem;
+      font-family: monospace;
+      color: #555;
+      line-height: 1.5;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
@@ -153,6 +165,8 @@
   <div id="timer-wrap">
     <div id="timer">15:00</div>
   </div>
+
+  <div id="log"></div>
 
   <div class="controls">
     <button id="btn-prev" disabled>&#8592;</button>
@@ -175,9 +189,19 @@
 
     var conn;
 
+    var logEl = document.getElementById('log');
+
     function setStatus(text, cls) {
       statusEl.textContent = text;
       statusEl.className = cls || '';
+    }
+
+    function log(text) {
+      var ts = new Date().toISOString().substring(11, 19);
+      var line = document.createElement('div');
+      line.textContent = ts + ' ' + text;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
     }
 
     function setConnected(c) {
@@ -228,16 +252,20 @@
     } else {
       slideInfo.hidden = false;
 
+      log('Oppretter peer…');
       var peer = new Peer({ config: { iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
       ]}});
 
-      peer.on('open', function () {
+      peer.on('open', function (id) {
+        log('Peer klar, id=' + id.substring(0, 8) + '…');
         setStatus('Tilkobler presentasjon…');
+        log('Kobler til ' + targetId.substring(0, 8) + '…');
         conn = peer.connect(targetId, { reliable: true });
 
         conn.on('open', function () {
+          log('Tilkoblet ✓');
           setStatus('Tilkoblet', 'connected');
           setConnected(true);
         });
@@ -264,17 +292,24 @@
         });
 
         conn.on('close', function () {
+          log('Kobling lukket');
           setStatus('Frakoblet', 'error');
           setConnected(false);
         });
 
-        conn.on('error', function () {
+        conn.on('error', function (err) {
+          log('Koblingsfeil: ' + (err && err.message ? err.message : err));
           setStatus('Tilkoblingsfeil', 'error');
           setConnected(false);
+        });
+
+        conn.peerConnection && conn.peerConnection.addEventListener('iceconnectionstatechange', function () {
+          log('ICE: ' + conn.peerConnection.iceConnectionState);
         });
       });
 
       peer.on('error', function (err) {
+        log('Peer-feil: ' + err.type + (err.message ? ' — ' + err.message : ''));
         setStatus('Feil: ' + err.type, 'error');
         setConnected(false);
       });
