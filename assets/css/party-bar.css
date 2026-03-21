@@ -179,6 +179,16 @@
   letter-spacing: 0.04em;
 }
 
+/* ---- Walk-off exit animation ---- */
+@keyframes partyWalkOff {
+  0%   { transform: translateX(0);      opacity: 1; }
+  100% { transform: translateX(120px);  opacity: 0; }
+}
+.party-slot-exit {
+  animation: partyWalkOff 0.6s ease-in forwards;
+  pointer-events: none;
+}
+
 /* ---- Floating emote ---- */
 .floating-emote {
   position: absolute;

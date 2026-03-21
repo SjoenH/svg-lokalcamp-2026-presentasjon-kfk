@@ -208,9 +208,21 @@
       var member = audienceMembers[conn.peer];
       if (!member) return;
       if (member.bubbleTimeout) clearTimeout(member.bubbleTimeout);
+
+      // Walk off screen before removing
+      var slot = wrap.querySelector('.party-slot[data-conn-id="' + conn.peer + '"]');
       delete audienceMembers[conn.peer];
-      renderPartyBar();
       broadcastAudienceUpdate();
+
+      if (slot) {
+        slot.classList.add('party-slot-exit');
+        slot.addEventListener('animationend', function () {
+          slot.remove();
+          renderPartyBar();
+        }, { once: true });
+      } else {
+        renderPartyBar();
+      }
     });
   }
 
