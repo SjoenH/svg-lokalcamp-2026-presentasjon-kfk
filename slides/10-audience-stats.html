@@ -135,13 +135,25 @@
     }
   }
 
-  // Populate when this slide becomes active
+  // Live-update while slide is active
+  var liveInterval = null;
+
+  function startLive() {
+    populate();
+    if (!liveInterval) liveInterval = setInterval(populate, 1000);
+  }
+
+  function stopLive() {
+    clearInterval(liveInterval);
+    liveInterval = null;
+  }
+
   if (window.Reveal) {
     Reveal.addEventListener('slidechanged', function (e) {
-      if (e.currentSlide === section) populate();
+      if (e.currentSlide === section) startLive();
+      else stopLive();
     });
-    // Also populate immediately if already on this slide
-    if (Reveal.isReady() && Reveal.getCurrentSlide() === section) populate();
+    if (Reveal.isReady() && Reveal.getCurrentSlide() === section) startLive();
   }
 })();
 </script>
