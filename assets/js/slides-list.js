@@ -25,6 +25,7 @@ const SLIDES = [
   '06d-growth',
   '07-meaning',
   '08-closing',
+  '09-audience-join',
 ];
 
 // Allow require() in Node (build.js)

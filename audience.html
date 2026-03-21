@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Bli med! — KFK 2026</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f0f1a;
+      color: #f0f0f0;
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* ---- Views ---- */
+    .view { display: none; width: 100%; max-width: 480px; padding: 24px 16px; }
+    .view.active { display: flex; flex-direction: column; align-items: center; }
+
+    h1 { font-size: 1.5rem; font-weight: 900; text-align: center; margin-bottom: 4px; }
+    .subtitle { font-size: 0.85rem; color: #888; text-align: center; margin-bottom: 20px; }
+
+    /* ---- Character grid ---- */
+    #char-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .char-card {
+      background: #1a1a2e;
+      border: 2px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 12px 6px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.12s, background 0.12s;
+      position: relative;
+    }
+    .char-card.selected {
+      border-color: #7dd3fc;
+      background: #1a2a3e;
+    }
+    .char-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 5px; right: 7px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #7dd3fc;
+    }
+
+    /* Sprite container */
+    .char-sprite-wrap {
+      width: 48px;
+      height: 44px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .char-sprite {
+      width: 1px;
+      height: 1px;
+      flex-shrink: 0;
+      margin-bottom: 12px;
+      image-rendering: pixelated;
+    }
+    .char-sprite.anim-walk  { animation: csWalk  0.6s ease-in-out infinite; }
+    .char-sprite.anim-stomp { animation: csStomp 0.35s steps(1) infinite; }
+    .char-sprite.anim-bob   { animation: csBob   0.9s ease-in-out infinite; }
+    .char-sprite.anim-hover { animation: csHover 1.4s ease-in-out infinite; }
+
+    @keyframes csWalk  { 0%,100%{transform:scale(2.5) translateY(0)} 50%{transform:scale(2.5) translateY(-1px)} }
+    @keyframes csStomp { 0%,100%{transform:scale(2.5) translateY(0)} 50%{transform:scale(2.5) translateY(-2px)} }
+    @keyframes csBob   { 0%,100%{transform:scale(2.5) rotate(-6deg)} 50%{transform:scale(2.5) rotate(6deg) translateY(-1px)} }
+    @keyframes csHover { 0%,100%{transform:scale(2.5) translateY(0)} 50%{transform:scale(2.5) translateY(-3px)} }
+
+    .char-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #ddd;
+      text-align: center;
+    }
+    .char-desc {
+      font-size: 0.6rem;
+      color: #666;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* ---- Name input ---- */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      flex: 1;
+      background: #1a1a2e;
+      border: 2px solid #2a2a4a;
+      border-radius: 10px;
+      color: #f0f0f0;
+      font-size: 1rem;
+      padding: 11px 14px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type="text"]:focus { border-color: #7dd3fc; }
+
+    /* ---- Buttons ---- */
+    .btn-primary {
+      background: #2255aa;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary:active { background: #3366cc; }
+    .btn-primary:disabled { opacity: 0.38; cursor: not-allowed; }
+
+    .btn-secondary {
+      background: #1a1a2e;
+      color: #aaa;
+      border: 2px solid #2a2a4a;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+    .btn-secondary:active { background: #222238; }
+
+    .hint { font-size: 0.7rem; color: #555; text-align: center; margin-top: 4px; }
+
+    /* ---- Connecting view ---- */
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #2a2a4a;
+      border-top-color: #7dd3fc;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 40px auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #connect-status { color: #888; text-align: center; font-size: 0.9rem; }
+
+    /* ---- Main control view ---- */
+    #my-char-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      padding: 12px 20px;
+      background: #1a1a2e;
+      border-radius: 12px;
+      width: 100%;
+    }
+    .preview-sprite-wrap {
+      width: 40px; height: 36px;
+      display: flex; align-items: flex-end; justify-content: center;
+      overflow: hidden;
+    }
+    .preview-sprite {
+      width: 1px; height: 1px; flex-shrink: 0; margin-bottom: 10px;
+      image-rendering: pixelated;
+    }
+    .preview-sprite.anim-walk  { animation: csWalk  0.6s ease-in-out infinite; }
+    .preview-sprite.anim-stomp { animation: csStomp 0.35s steps(1) infinite; }
+    .preview-sprite.anim-bob   { animation: csBob   0.9s ease-in-out infinite; }
+    .preview-sprite.anim-hover { animation: csHover 1.4s ease-in-out infinite; }
+
+    #my-char-name {
+      font-size: 0.8rem;
+      color: #aaa;
+      text-align: center;
+    }
+    #my-char-name strong { color: #f0f0f0; }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #666;
+      align-self: flex-start;
+      margin-bottom: 8px;
+    }
+
+    /* Sentence buttons */
+    #sentence-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      margin-bottom: 18px;
+    }
+    .sentence-btn {
+      background: #1a1a2e;
+      border: 2px solid #2a2a4a;
+      border-radius: 10px;
+      color: #f0f0f0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 10px 10px;
+      cursor: pointer;
+      text-align: center;
+      line-height: 1.3;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sentence-btn:active {
+      background: #223355;
+      border-color: #7dd3fc;
+      transform: scale(0.97);
+    }
+
+    /* Emote buttons */
+    #emote-grid {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    .emote-btn {
+      background: #1a1a2e;
+      border: 2px solid #2a2a4a;
+      border-radius: 12px;
+      font-size: 1.6rem;
+      padding: 10px;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .emote-btn:active {
+      background: #223355;
+      border-color: #7dd3fc;
+      transform: scale(0.94);
+    }
+
+    /* Move controls */
+    #move-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .move-btn {
+      background: #1a1a2e;
+      border: 2px solid #2a2a4a;
+      border-radius: 10px;
+      color: #f0f0f0;
+      font-size: 1.4rem;
+      width: 52px; height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .move-btn:active {
+      background: #223355;
+      border-color: #7dd3fc;
+      transform: scale(0.92);
+    }
+    #move-label {
+      font-size: 0.72rem;
+      color: #666;
+      text-align: center;
+    }
+
+    /* Status dot */
+    #conn-status {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.25);
+      text-align: center;
+      margin-top: auto;
+      padding-top: 8px;
+    }
+    #conn-status.connected { color: rgba(74,222,128,0.5); }
+
+    /* Reconnect overlay */
+    #reconnect-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 99;
+    }
+    #reconnect-overlay.visible { display: flex; }
+    #reconnect-overlay p { color: #aaa; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Screen 1: Character selection -->
+  <div id="view-select" class="view active">
+    <h1>Bli med i showet!</h1>
+    <p class="subtitle">Vel ein karakter og skriv inn namnet ditt</p>
+    <div id="char-grid"></div>
+    <div class="input-row">
+      <input type="text" id="name-input" maxlength="16" placeholder="Ditt namn" autocomplete="off" autocorrect="off" spellcheck="false" />
+      <button class="btn-primary" id="btn-join" disabled>Bli med!</button>
+    </div>
+    <p class="hint">Namnet ditt vises under karakteren din på storskjermen</p>
+  </div>
+
+  <!-- Screen 2: Connecting -->
+  <div id="view-connecting" class="view">
+    <div class="spinner"></div>
+    <p id="connect-status">Koplar til presentasjonen…</p>
+  </div>
+
+  <!-- Screen 3: Main control -->
+  <div id="view-main" class="view">
+    <div id="my-char-preview">
+      <div class="preview-sprite-wrap">
+        <div class="preview-sprite" id="preview-sprite"></div>
+      </div>
+      <p id="my-char-name"></p>
+    </div>
+
+    <div class="section-label">Si noko</div>
+    <div id="sentence-grid"></div>
+
+    <div class="section-label">Emote</div>
+    <div id="emote-grid"></div>
+
+    <div id="move-controls">
+      <button class="move-btn" id="btn-left">←</button>
+      <div id="move-label">Flytt deg i rekka</div>
+      <button class="move-btn" id="btn-right">→</button>
+    </div>
+
+    <div id="conn-status">○ frakopla</div>
+  </div>
+
+  <!-- Reconnect overlay -->
+  <div id="reconnect-overlay">
+    <p>Mista tilkoplinga…</p>
+    <button class="btn-primary" id="btn-reconnect">Kopla til på nytt</button>
+    <button class="btn-secondary" id="btn-reselect">Vel ny karakter</button>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="assets/js/audience-config.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    var selectedCharId = null;
+    var myName = '';
+    var peer = null;
+    var conn = null;
+
+    // ---- Restore session ----
+    var saved = {};
+    try { saved = JSON.parse(sessionStorage.getItem('audience-session') || '{}'); } catch (e) {}
+
+    // ---- Build character grid ----
+    var grid = document.getElementById('char-grid');
+    (window.AUDIENCE_CHARACTERS || []).forEach(function (char) {
+      var card = document.createElement('div');
+      card.className = 'char-card';
+      card.dataset.charId = char.id;
+
+      var spriteWrap = document.createElement('div');
+      spriteWrap.className = 'char-sprite-wrap';
+      var sprite = document.createElement('div');
+      sprite.className = 'char-sprite anim-' + (char.anim || 'walk');
+      sprite.style.boxShadow = char.shadow;
+      spriteWrap.appendChild(sprite);
+
+      var label = document.createElement('div');
+      label.className = 'char-label';
+      label.textContent = char.label;
+
+      var desc = document.createElement('div');
+      desc.className = 'char-desc';
+      desc.textContent = char.desc;
+
+      card.appendChild(spriteWrap);
+      card.appendChild(label);
+      card.appendChild(desc);
+
+      card.addEventListener('click', function () {
+        document.querySelectorAll('.char-card').forEach(function (c) { c.classList.remove('selected'); });
+        card.classList.add('selected');
+        selectedCharId = char.id;
+        checkJoinReady();
+      });
+
+      grid.appendChild(card);
+
+      // Restore saved selection
+      if (saved.charId === char.id) {
+        card.click();
+      }
+    });
+
+    // ---- Build sentence buttons ----
+    var sentenceGrid = document.getElementById('sentence-grid');
+    (window.AUDIENCE_SENTENCES || []).forEach(function (s) {
+      var btn = document.createElement('button');
+      btn.className = 'sentence-btn';
+      btn.textContent = s.text;
+      btn.addEventListener('click', function () {
+        if (conn && conn.open) conn.send({ type: 'audience-speak', sentenceId: s.id });
+      });
+      sentenceGrid.appendChild(btn);
+    });
+
+    // ---- Build emote buttons ----
+    var emoteGrid = document.getElementById('emote-grid');
+    (window.AUDIENCE_EMOTES || []).forEach(function (e) {
+      var btn = document.createElement('button');
+      btn.className = 'emote-btn';
+      btn.textContent = e.emoji;
+      btn.title = e.id;
+      btn.addEventListener('click', function () {
+        if (conn && conn.open) conn.send({ type: 'audience-emote', emoteId: e.id });
+      });
+      emoteGrid.appendChild(btn);
+    });
+
+    // ---- Name input ----
+    var nameInput = document.getElementById('name-input');
+    nameInput.value = saved.name || '';
+    nameInput.addEventListener('input', function () {
+      myName = nameInput.value.trim();
+      checkJoinReady();
+    });
+
+    function checkJoinReady() {
+      myName = nameInput.value.trim();
+      document.getElementById('btn-join').disabled = !(selectedCharId && myName.length > 0);
+    }
+
+    // ---- Join button ----
+    document.getElementById('btn-join').addEventListener('click', function () {
+      myName = nameInput.value.trim().slice(0, 16);
+      if (!selectedCharId || !myName) return;
+      sessionStorage.setItem('audience-session', JSON.stringify({ charId: selectedCharId, name: myName }));
+      connect();
+    });
+
+    // ---- View switching ----
+    function showView(id) {
+      document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+      document.getElementById(id).classList.add('active');
+    }
+
+    // ---- Setup main view ----
+    function setupMainView() {
+      var char = (window.AUDIENCE_CHARACTERS || []).find(function (c) { return c.id === selectedCharId; });
+      if (char) {
+        var preview = document.getElementById('preview-sprite');
+        preview.style.boxShadow = char.shadow;
+        preview.className = 'preview-sprite anim-' + (char.anim || 'walk');
+      }
+      var nameEl = document.getElementById('my-char-name');
+      nameEl.innerHTML = '<strong>' + escapeHtml(myName) + '</strong> — ' + (char ? char.label : '');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ---- Move buttons ----
+    document.getElementById('btn-left').addEventListener('click', function () {
+      if (conn && conn.open) conn.send({ type: 'audience-move', direction: 'left' });
+    });
+    document.getElementById('btn-right').addEventListener('click', function () {
+      if (conn && conn.open) conn.send({ type: 'audience-move', direction: 'right' });
+    });
+
+    // ---- Reconnect/reselect ----
+    document.getElementById('btn-reconnect').addEventListener('click', function () {
+      document.getElementById('reconnect-overlay').classList.remove('visible');
+      showView('view-connecting');
+      connect();
+    });
+    document.getElementById('btn-reselect').addEventListener('click', function () {
+      document.getElementById('reconnect-overlay').classList.remove('visible');
+      showView('view-select');
+    });
+
+    // ---- Connection status ----
+    function setStatus(text, connected) {
+      var el = document.getElementById('conn-status');
+      el.textContent = connected ? '⬤ tilkopla' : '○ ' + text;
+      el.className = connected ? 'connected' : '';
+    }
+
+    // ---- PeerJS connect ----
+    function connect() {
+      showView('view-connecting');
+      document.getElementById('connect-status').textContent = 'Koplar til presentasjonen…';
+
+      if (peer && !peer.destroyed) peer.destroy();
+
+      peer = new Peer({ config: { iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ]}});
+
+      peer.on('open', function () {
+        conn = peer.connect('kfk-lokalcamp-2026', { label: 'audience' });
+
+        conn.on('open', function () {
+          conn.send({ type: 'audience-join', name: myName, charId: selectedCharId });
+          setupMainView();
+          showView('view-main');
+          setStatus('', true);
+        });
+
+        conn.on('data', function (data) {
+          if (data && data.type === 'audience-update') {
+            // could show member count if desired
+          }
+        });
+
+        conn.on('close', function () {
+          setStatus('frakopla', false);
+          document.getElementById('reconnect-overlay').classList.add('visible');
+        });
+
+        conn.on('error', function () {
+          setStatus('feil', false);
+          document.getElementById('reconnect-overlay').classList.add('visible');
+        });
+      });
+
+      peer.on('error', function (err) {
+        document.getElementById('connect-status').textContent =
+          err.type === 'peer-unavailable'
+            ? 'Fann ikkje presentasjonen. Er den open?'
+            : 'Tilkoplingsfeil: ' + err.type;
+      });
+    }
+  })();
+  </script>
+</body>
+</html>

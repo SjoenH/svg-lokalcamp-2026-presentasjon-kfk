@@ -56,6 +56,10 @@
     });
 
     peer.on('connection', function (conn) {
+      if (conn.label === 'audience') {
+        if (window.AudienceManager) window.AudienceManager.handleConnection(conn);
+        return;
+      }
       connections.push(conn);
       conn.on('open', function () {
         updatePeerStatus();
@@ -104,6 +108,8 @@
         updatePeerStatus();
       });
     });
+
+    window.presenterPeer = peer;
 
     Reveal.addEventListener('slidechanged', function (e) {
       broadcastState();
