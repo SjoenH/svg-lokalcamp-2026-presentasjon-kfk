@@ -35,7 +35,16 @@
       { urls: 'stun:stun1.l.google.com:19302' },
     ]}});
 
-    peer.on('open', function () {});
+    peer.on('open', function () {
+      updatePeerStatus();
+    });
+
+    peer.on('error', function (err) {
+      if (err.type === 'unavailable-id') {
+        // ID opptatt fra forrige sesjon — vent og prøv på nytt
+        setTimeout(function () { peer.destroy(); init(); }, 2000);
+      }
+    });
 
     peer.on('connection', function (conn) {
       connections.push(conn);
