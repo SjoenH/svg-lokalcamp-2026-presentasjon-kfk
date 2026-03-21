@@ -122,13 +122,14 @@ All settings stored in `localStorage` under predictable keys:
 - Add gear icon to `.controls` row
 - Add settings JS: localStorage read/write, view switching, Wake Lock lifecycle, WebRTC sends for `font-scale` and `timer-duration`
 - Handle incoming `font-scale` and `timer-duration` messages from main screen (update sliders/stepper)
-- Replace hardcoded `TOTAL = 15 * 60` with value from localStorage
+- Replace hardcoded `TOTAL = 15 * 60` with value from localStorage (`kfk.timerTotal`)
+- Update `stopTimer()` to reset the display to the current `timerTotal` formatted as `MM:SS` (e.g. `"20:00"`) rather than the hardcoded `"15:00"`
 - Use `--notes-font-size` CSS custom property on `#notes`
 
 **`assets/js/remote-control.js`**
 - Handle `font-scale` action: apply `Reveal.configure({ scale })` + `Reveal.layout()`, store current value, rebroadcast to all remotes
-- Handle `timer-duration` action: store `timerTotal`, rebroadcast, include in timer broadcasts
-- Include `fontScale` and `timerTotal` in reconnect state broadcast
+- Handle `timer-duration` action: store `timerTotal`, rebroadcast, include in future timer broadcasts
+- In `sendStateTo(conn)`: after sending the existing `state` message, send two additional discrete messages — `{type: 'font-scale', value: fontScale}` and `{type: 'timer-duration', total: timerTotal}` — so the connecting remote initialises both settings from the authoritative values on the main screen
 - Update existing `conn.on('open')` timer reconnect send to `{type: 'timer', startedAt: timerStartedAt, total: timerTotal}` (only sent when timer is running)
 
 ---
