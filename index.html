@@ -23,7 +23,7 @@
       #remote-overlay a { color: #7dd3fc; font-size: 0.75rem; word-break: break-all; text-align: center; max-width: 360px; }
       #remote-qr { background: #f0f0f0; padding: 8px; border-radius: 8px; }
       #remote-overlay { cursor: pointer; }
-      #remote-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; line-height: 1; }
+      #remote-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; line-height: 1; pointer-events: auto !important; z-index: 10000; }
       #remote-close:hover { color: #fff; }
       #remote-hint { position: fixed; bottom: 1rem; right: 1rem; font-size: 0.6rem; color: rgba(255,255,255,0.25); font-family: system-ui, sans-serif; pointer-events: none; }
     </style>
@@ -43,7 +43,7 @@
 
     <!-- Remote control overlay (trykk R for å vise/lukke, eller klikk) -->
     <div id="remote-overlay" hidden>
-      <button id="remote-close" onclick="document.getElementById('remote-overlay').hidden=true">✕</button>
+      <button id="remote-close">✕</button>
       <p>Skann for å åpne remote control på mobilen</p>
       <div id="remote-qr"></div>
       <a id="remote-url" href="#" target="_blank"></a>
