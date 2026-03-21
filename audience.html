@@ -420,6 +420,12 @@
       }
     });
 
+    // Pre-select first character if nothing was restored
+    if (!selectedCharId) {
+      var firstCard = grid.querySelector('.char-card');
+      if (firstCard) firstCard.click();
+    }
+
     // ---- Build sentence buttons ----
     var sentenceGrid = document.getElementById('sentence-grid');
     (window.AUDIENCE_SENTENCES || []).forEach(function (s) {
