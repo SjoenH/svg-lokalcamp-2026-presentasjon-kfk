@@ -153,9 +153,52 @@
       font-size: 0.75rem;
       color: #4ade80;
       text-align: center;
-      margin-bottom: 14px;
+      margin-bottom: 6px;
       opacity: 0.8;
     }
+
+    .wifi-card {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 10px;
+      padding: 10px 14px;
+      width: 100%;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .wifi-card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .wifi-ssid {
+      font-size: 0.75rem;
+      color: #888;
+    }
+    .wifi-password {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f0f0f0;
+      letter-spacing: 0.04em;
+      font-family: 'Courier New', monospace;
+    }
+    .btn-copy {
+      background: #2a2a4a;
+      border: none;
+      border-radius: 8px;
+      color: #7dd3fc;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 8px 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-copy:active { background: #3a3a6a; }
+    .btn-copy.copied { color: #4ade80; }
 
     /* ---- Connecting view ---- */
     .spinner {
@@ -327,7 +370,14 @@
   <div id="view-select" class="view active">
     <h1>Bli med i showet!</h1>
     <p class="subtitle">Vel ein karakter og skriv inn namnet ditt</p>
-    <p class="wifi-notice">📶 Bruk WiFi for best tilkopling</p>
+    <p class="wifi-notice">📶 Koble til WiFi for best tilkopling</p>
+    <div class="wifi-card">
+      <div class="wifi-card-info">
+        <span class="wifi-ssid">Conference</span>
+        <span class="wifi-password">ThSSh2o2i!</span>
+      </div>
+      <button class="btn-copy" id="btn-copy-wifi">Kopier</button>
+    </div>
     <div id="char-grid"></div>
     <div class="input-row">
       <input type="text" id="name-input" maxlength="16" placeholder="Ditt namn" autocomplete="off" autocorrect="off" spellcheck="false" />
@@ -466,6 +516,19 @@
     nameInput.addEventListener('input', function () {
       myName = nameInput.value.trim();
       checkJoinReady();
+    });
+
+    // ---- WiFi copy button ----
+    document.getElementById('btn-copy-wifi').addEventListener('click', function () {
+      var btn = this;
+      navigator.clipboard.writeText('ThSSh2o2i!').then(function () {
+        btn.textContent = '✓ Kopiert!';
+        btn.classList.add('copied');
+        setTimeout(function () {
+          btn.textContent = 'Kopier';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
     });
 
     function checkJoinReady() {
