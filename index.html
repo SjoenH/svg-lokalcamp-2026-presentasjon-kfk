@@ -61,11 +61,13 @@
         border: 1px solid var(--col-border);
         border-radius: 6px;
         padding: 0.6em 1em;
-        font-size: 0.42em;
+        font-size: 0.55em;
         line-height: 1.35;
         box-shadow: none;
         white-space: pre;
         overflow-x: auto;
+        overflow-y: auto;
+        max-height: 550px;
         width: 100%;
         margin: 0.5em 0;
       }
@@ -84,7 +86,7 @@
         border-radius: 0 6px 6px 0;
         padding: 0.5em 1em;
         margin: 0.8em 0;
-        font-size: 0.7em;
+        font-size: 0.75em;
         color: var(--col-muted);
         font-style: normal;
         width: 100%;
@@ -174,7 +176,7 @@
 
       /* ── Section indicator pill ───────────────────────────── */
       .section-num {
-        font-size: 0.55em;
+        font-size: 0.6em;
         color: var(--col-muted);
         font-weight: 600;
         text-transform: uppercase;
@@ -195,6 +197,152 @@
 
       /* ── Forbidden list ───────────────────────────────────── */
       .forbidden li::marker { content: "❌ "; }
+
+      /* ── Animations & Transitions ─────────────────────────── */
+
+      /* Smooth transitions for all elements */
+      .reveal section {
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      /* Custom fragment fade-up animation */
+      .reveal .fragment.fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease-out;
+      }
+      .reveal .fragment.fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Custom fragment slide-in-left */
+      .reveal .fragment.slide-in-left {
+        opacity: 0;
+        transform: translateX(-50px);
+        transition: all 0.5s ease-out;
+      }
+      .reveal .fragment.slide-in-left.visible {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* Custom fragment slide-in-right */
+      .reveal .fragment.slide-in-right {
+        opacity: 0;
+        transform: translateX(50px);
+        transition: all 0.5s ease-out;
+      }
+      .reveal .fragment.slide-in-right.visible {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* Bounce animation for chips */
+      @keyframes bounce-in {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .reveal .chip {
+        animation: bounce-in 0.5s ease-out;
+      }
+
+      /* Pulse animation for bigstats */
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+      .reveal .bigstat {
+        animation: pulse 1s ease-in-out;
+      }
+
+      /* Smooth hover effect for blockquotes */
+      .reveal blockquote {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .reveal blockquote:hover {
+        transform: translateX(5px);
+        box-shadow: -5px 0 15px rgba(0,0,0,0.05);
+      }
+
+      /* Two-column fade-in with stagger */
+      .reveal .cols > *:first-child {
+        animation: fade-slide-left 0.6s ease-out;
+      }
+      .reveal .cols > *:last-child {
+        animation: fade-slide-right 0.6s ease-out;
+      }
+
+      @keyframes fade-slide-left {
+        from { opacity: 0; transform: translateX(-30px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+
+      @keyframes fade-slide-right {
+        from { opacity: 0; transform: translateX(30px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+
+      /* ASCII art smooth appearance */
+      .reveal pre code {
+        animation: ascii-appear 0.4s ease-out;
+      }
+
+      @keyframes ascii-appear {
+        from { opacity: 0; filter: blur(3px); }
+        to { opacity: 1; filter: blur(0); }
+      }
+
+      /* Heading underline animation */
+      .reveal h2 {
+        transition: border-color 0.3s ease;
+      }
+
+      /* Table row highlight on appear */
+      .reveal table tr {
+        animation: row-appear 0.5s ease-out backwards;
+      }
+      .reveal table tr:nth-child(1) { animation-delay: 0.1s; }
+      .reveal table tr:nth-child(2) { animation-delay: 0.2s; }
+      .reveal table tr:nth-child(3) { animation-delay: 0.3s; }
+      .reveal table tr:nth-child(4) { animation-delay: 0.4s; }
+      .reveal table tr:nth-child(5) { animation-delay: 0.5s; }
+
+      @keyframes row-appear {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Section number fade-in */
+      .reveal .section-num {
+        animation: fade-in 0.5s ease-out;
+      }
+
+      @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      /* Forbidden list items appear one by one */
+      .reveal .forbidden li {
+        animation: item-pop 0.4s ease-out backwards;
+      }
+      .reveal .forbidden li:nth-child(1) { animation-delay: 0.1s; }
+      .reveal .forbidden li:nth-child(2) { animation-delay: 0.15s; }
+      .reveal .forbidden li:nth-child(3) { animation-delay: 0.2s; }
+      .reveal .forbidden li:nth-child(4) { animation-delay: 0.25s; }
+      .reveal .forbidden li:nth-child(5) { animation-delay: 0.3s; }
+      .reveal .forbidden li:nth-child(6) { animation-delay: 0.35s; }
+      .reveal .forbidden li:nth-child(7) { animation-delay: 0.4s; }
+      .reveal .forbidden li:nth-child(8) { animation-delay: 0.45s; }
+      .reveal .forbidden li:nth-child(9) { animation-delay: 0.5s; }
+
+      @keyframes item-pop {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+      }
     </style>
   </head>
 
@@ -208,7 +356,7 @@
           <p class="subtitle">Kredittfaglig kompetansesenter<br>— Lyspunkter fra 18 måneder</p>
           <hr style="width:40%;margin:1em auto;"/>
           <p class="small">Henry Sjøen &amp; Ahmed Abdi · SVG Lokalcamp 2026</p>
-          <p class="small">~10 min</p>
+          <p class="small">~12 min</p>
         </section>
 
         <!-- ── 1. Hvem er kunden? ──────────────────────────── -->
@@ -267,6 +415,7 @@
             <li><strong>Tharmira</strong> — junior, vokser faglig gjennom prosjektet</li>
             <li><strong>Henry + Ahmed</strong> — Miles-konsulenter: faglig-autoritet og varme</li>
           </ul>
+          <blockquote><strong>Faglig-autoritet og varme</strong> — en rød tråd gjennom hele prosjektet: teknisk ekspertise kombinert med omsorg for teamet og deres læring.</blockquote>
         </section>
 
         <!-- ── 2a. Storkunde ───────────────────────────────── -->
@@ -337,10 +486,10 @@
               <li>Ambita-integrasjon: matrikkeldata fra Kartverket</li>
               <li>Forretningsregler sikrer at vurderinger følger bankens retningslinjer</li>
               <li>960 commits · fem måneder</li>
-              <li><span class="chip chip-green">I produksjon</span></li>
+              <li><span class="chip chip-purple">Lansering Q2 2026</span></li>
             </ul>
           </div>
-          <blockquote>Begge i produksjon — kjerneverktøy i bankens lånesaksbehandling. Samme stack: React Router v7 + .NET + Caddy + AWS/Kubernetes</blockquote>
+          <blockquote>Storkunde i produksjon — kjerneverktøy i bankens lånesaksbehandling. Landbruk i lansering Q2 2026. Samme stack: React Router v7 + .NET + Caddy + AWS/Kubernetes</blockquote>
         </section>
 
         <!-- ── 3a. Container-debatt ───────────────────────────── -->
@@ -448,11 +597,10 @@
 
         <!-- ── 5a. Arbeidsmetodikk — filosofi ─────────────── -->
         <section>
-          <span class="section-num">5 / 7 · ~2 min</span>
+          <span class="section-num">5 / 7 · ~1 min</span>
           <h2>Arbeidsmetodikk</h2>
           <h3>Henrys filosofier</h3>
-          <div class="cols">
-            <pre><code>  #1 — Abstraksjon
+          <pre><code>  #1 — Abstraksjon
 
       o
     [0-0]  "en god abstraksjon gjør noe
@@ -474,9 +622,16 @@
       o
     [0-0]   "det er ikke poenget"
      /|\
-     / \
+     / \</code></pre>
+        </section>
 
-  #3 — Den indre kampen
+        <!-- ── 5b. Arbeidsmetodikk — filosofi #3 + forbudte ting ─────────────── -->
+        <section>
+          <span class="section-num">5 / 7 · ~1 min</span>
+          <h2>Arbeidsmetodikk</h2>
+          <h3>Henrys filosofier (forts.) + forbudte ting</h3>
+          <div class="cols">
+            <pre><code>  #3 — Den indre kampen
 
       o   *tankeboble*
     [0-0]    react router v7 + SSR...
@@ -492,7 +647,7 @@
      / \</code></pre>
             <div>
               <p class="small" style="margin-bottom:0.3em;font-weight:600;color:var(--col-heading)">Forbudte ting:</p>
-              <ul class="forbidden" style="font-size:0.6em;list-style:none;margin-left:0">
+              <ul class="forbidden" style="font-size:0.7em;list-style:none;margin-left:0">
                 <li>AutoMapper → manuelle extension-metoder</li>
                 <li>Repository-mønster → direkte EF DbContext</li>
                 <li>Global state / Redux</li>
@@ -507,9 +662,9 @@
           </div>
         </section>
 
-        <!-- ── 5b. Arbeidsmetodikk — refactor + Claude ────── -->
+        <!-- ── 5c. Arbeidsmetodikk — refactor + Claude ────── -->
         <section>
-          <span class="section-num">5 / 7 · ~2 min</span>
+          <span class="section-num">5 / 7 · ~0,5 min</span>
           <h2>Arbeidsmetodikk</h2>
           <h3>Standardisering og AI-verktøy</h3>
           <div class="cols">
@@ -553,9 +708,9 @@
           </div>
         </section>
 
-        <!-- ── 5c. Arbeidsmetodikk — Henry litt alt ──────────── -->
+        <!-- ── 5d. Arbeidsmetodikk — Henry litt alt ──────────── -->
         <section>
-          <span class="section-num">5 / 7 · ~2 min</span>
+          <span class="section-num">5 / 7 · ~1 min</span>
           <h2>Arbeidsmetodikk</h2>
           <h3>Henry «gjør litt backend her»</h3>
           <div class="cols">
@@ -578,26 +733,11 @@
 
       o  + [AI] = 650 linjer bash
     [0-0]
-     /|\    kfk prs:
-     / \    - fzf med --listen (live reload)
-            - GraphQL mot GitHub API
-            - MD5-basert caching (5 min TTL)
-            - Slack-meldings-generator
-            - bakgrunns-preview-rendering
-            - two-step close via tempfiler
-
-    O
-  {===}  "trengte vi egentlig
-  / | \   alt dette for en
-   / \    PR-liste?"
-
-      o
-    [0-0]   "ja"
      /|\
      / \</code></pre>
             <div>
-              <p><strong>kfk prs</strong></p>
-              <ul style="font-size:0.65em">
+              <p><strong>kfk prs</strong> - interaktiv PR-liste</p>
+              <ul style="font-size:0.7em">
                 <li>fzf med <code>--listen</code> (live reload)</li>
                 <li>GraphQL mot GitHub API</li>
                 <li>MD5-basert caching (5 min TTL)</li>
@@ -605,23 +745,104 @@
                 <li>Bakgrunns-preview-rendering</li>
                 <li>Two-step close-bekreftelse via tempfiler</li>
               </ul>
-              <hr/>
-              <p><strong>kfk start</strong></p>
-              <ul style="font-size:0.65em">
-                <li>Åpner tmux, backend + frontend side om side</li>
-                <li>Mouse-støtte, åpner nettleseren automatisk</li>
-              </ul>
             </div>
           </div>
         </section>
 
-        <!-- ── 5d. Arbeidsmetodikk — setup-local-dev.sh ──────── -->
+        <!-- ── 5e. Arbeidsmetodikk — kfk start ──────────── -->
         <section>
-          <span class="section-num">5 / 7 · ~2 min</span>
+          <span class="section-num">5 / 7 · ~1 min</span>
+          <h2>Arbeidsmetodikk</h2>
+          <h3>kfk start — tmux workflow</h3>
+          <pre><code>    O
+  {===}  "trengte vi egentlig
+  / | \   alt dette for en
+   / \    PR-liste?"
+
+      o
+    [0-0]   "ja"
+     /|\
+     / \
+
+  ────────────────────────────────
+
+  kfk start:
+  - åpner tmux med backend + frontend side om side
+  - mouse-støtte aktivert
+  - åpner nettleser automatisk
+  - én kommando, klar til utvikling</code></pre>
+        </section>
+
+        <!-- ── 5f. Arbeidsmetodikk — Ahmed og PR-kø ──────────── -->
+        <section>
+          <span class="section-num">5 / 7 · ~0,5 min</span>
+          <h2>Arbeidsmetodikk</h2>
+          <h3>Ahmed og PR-køen</h3>
+          <pre><code>  ── panel 1: FØR CLAUDE ────────────────────
+
+      o   *sender 1 PR*
+    [0-0]
+     /|\
+     / \
+
+    O   *logger inn*
+  {===}  GitHub: 1 PR venter
+  / | \  "ok"
+   / \
+
+  ── panel 2: ETTER CLAUDE ──────────────────
+
+      o  + [AI]
+    [0-0]  *8 PRer før lunsj*
+     /|\
+     / \
+
+    O   *logger inn*
+  {===}  GitHub: 23 PRer venter
+  / | \  "...ok"
+   / \
+
+  ── panel 3: REALITETEN ────────────────────
+
+      o  + [AI]  *commit #47 i dag*
+    [0-0]  "jeg legger bare til
+     /|\    en liten ting her..."
+     / \
+
+    O   *kl 14:37, fortsatt i PR #3*
+  {===}
+  / | \  GitHub: 31 PRer venter
+   / \
+          ──────────────────────────
+          | Fix typo              ✓ |
+          | Add feature X         ✓ |
+          | Refactor Y            ← |
+          | Update Z                |
+          | New component A         |
+          | Improve B               |
+          | ...og 25 til            |
+          ──────────────────────────
+
+  ── panel 4: NESTE MORGEN ──────────────────
+
+    O   *åpner laptop*
+  {===}  *ser GitHub-notifikasjoner*
+  / | \
+   / \
+
+    O
+  {===}  👁️👁️
+  / | \
+   / \   *44 nye PRer over natten*</code></pre>
+          <blockquote>Med 4x høyere commit-rate kom også 4x flere PRer å godkjenne. Ahmed har CODEOWNERS-ansvar. Noen dager gjør han ingenting annet enn PR reviews. 🔍📚</blockquote>
+        </section>
+
+        <!-- ── 5g. Arbeidsmetodikk — setup-local-dev.sh ──────── -->
+        <section>
+          <span class="section-num">5 / 7 · ~0,5 min</span>
           <h2>Arbeidsmetodikk</h2>
           <h3>setup-local-dev.sh — én kommando</h3>
-          <div class="cols">
-            <pre><code>  setup-local-dev.sh (finnes i hvert repo):
+          <pre><code>  setup-local-dev.sh (finnes i hvert repo):
     1. sjekker at alle secrets er satt
        (og forteller deg nøyaktig hvilken
         dotnet-kommando du må kjøre)
@@ -637,7 +858,14 @@
     [0-0]
      /|\
      / \</code></pre>
-            <pre><code>    O   *åpner terminal*
+        </section>
+
+        <!-- ── 5h. Arbeidsmetodikk — Ahmed perspektiv ──────── -->
+        <section>
+          <span class="section-num">5 / 7 · ~0,5 min</span>
+          <h2>Arbeidsmetodikk</h2>
+          <h3>Ahmed foretrekker å vite hva som skjer</h3>
+          <pre><code>    O   *åpner terminal*
   {===}  docker rm -f storkunde-sql-local
   / | \  docker run -d --name ...
    / \   dotnet user-secrets set ...
@@ -656,12 +884,11 @@
   {===}  jeg foretrekker
   / | \  å vite hva som
    / \   skjer"</code></pre>
-          </div>
         </section>
 
-        <!-- ── 5e. Arbeidsmetodikk — Aurélie ────────────────── -->
+        <!-- ── 5i. Arbeidsmetodikk — Aurélie ────────────────── -->
         <section>
-          <span class="section-num">5 / 7 · ~2 min</span>
+          <span class="section-num">5 / 7 · ~0,5 min</span>
           <h2>Arbeidsmetodikk</h2>
           <h3>Aurélie tar kampene</h3>
           <pre><code>  👩‍💼 Aurélie i møte med SB1-styringsgruppen:
@@ -674,7 +901,7 @@
   👩‍💼:  "NON."
         *knytter neve*
         *bestiller kake til teamet*</code></pre>
-          <blockquote>Å ha en leder som tar skjold mot organisasjonsstøy er undervurdert. Henry og Ahmed kunne fokusere på faglig arbeid fordi Aurélie tok kampene. Det er <strong>faglig-autoritet og varme</strong> i praksis.</blockquote>
+          <blockquote>🎂 Å ha en leder som tar skjold mot organisasjonsstøy er undervurdert. Henry og Ahmed kunne fokusere på faglig arbeid fordi Aurélie tok kampene. Det er <strong>faglig-autoritet og varme</strong> i praksis.</blockquote>
         </section>
 
         <!-- ── 6a. Tall — pappaperm + ferie ─────────────────── -->
@@ -682,8 +909,7 @@
           <span class="section-num">6 / 7 · ~1 min</span>
           <h2>Tall og vekst</h2>
           <h3>mai–aug 2025: pappaperm + ferie</h3>
-          <div class="cols">
-            <pre><code>    o                          O
+          <pre><code>    o                          O
   [0-0]  *borte i 3 mnd*     {===}  "ikke stress,
    /|\   👶 + 🏖️             / | \   jeg tar det"
    / \                        |
@@ -700,7 +926,15 @@
   {===}  *seufzer*
   / | \
   / | \   [React intensifies]</code></pre>
-            <pre><code>  ── panel 1 ──────────────────────────
+          <blockquote>Ahmed holdt prosjektet i live alene i 3 måneder mens Henry var i pappaperm — og måtte gjøre frontend på kjøpet. 👶🏖️</blockquote>
+        </section>
+
+        <!-- ── 6b. Tall — frontend ble bedre ─────────────────── -->
+        <section>
+          <span class="section-num">6 / 7 · ~1 min</span>
+          <h2>Tall og vekst</h2>
+          <h3>«Det ble bedre nå, ikke sant?»</h3>
+          <pre><code>  ── panel 1 ──────────────────────────
     O
   {===}  "jeg fikset litt
   / | \   på frontend-en
@@ -728,12 +962,11 @@
       [0-0]  "ikke sant???"
        /|\
        / \</code></pre>
-          </div>
         </section>
 
-        <!-- ── 6b. Tall — raskeste fingre i vesten ───────────── -->
+        <!-- ── 6c. Tall — raskeste fingre i vesten ───────────── -->
         <section>
-          <span class="section-num">6 / 7 · ~1 min</span>
+          <span class="section-num">6 / 7 · ~0,5 min</span>
           <h2>Tall og vekst</h2>
           <h3>17. februar 2026 — raskeste fingre i vesten</h3>
           <pre><code>        ~~~~~ THE WEST ~~~~~
@@ -766,24 +999,26 @@
   / | \  *spiser all kaken*</code></pre>
         </section>
 
-        <!-- ── 6. Tall og vekst ────────────────────────────── -->
+        <!-- ── 6d. Tall og vekst ────────────────────────────── -->
         <section>
-          <span class="section-num">6 / 7 · ~1 min</span>
+          <span class="section-num">6 / 7 · ~0,5 min</span>
           <h2>Tall og vekst</h2>
           <div class="cols">
             <div>
               <pre><code>commits/dag (Henry, gjennomsnitt per periode)
 
  33 │                              ┌──────────
-    │                              │
+    │                              │ 🚀
  18 │                  ┌───────────┘
-    │                  │
+    │                  │  📈
   8 │──────────────────┘
     │   (pause mai–aug ↓)
   0 └──────────────────────────────────────
      okt '24  feb '25  okt '25  jan '26
                                   ↑
-                             CLAUDE.md</code></pre>
+                         🤖 CLAUDE.md
+
+  17. feb 2026: 🏆 132 commits på én dag</code></pre>
               <table>
                 <thead><tr><th>Periode</th><th>Commits/dag</th></tr></thead>
                 <tbody>
@@ -808,7 +1043,7 @@
 
         <!-- ── 7. Hva betyr dette? ─────────────────────────── -->
         <section>
-          <span class="section-num">7 / 7 · ~0,5 min</span>
+          <span class="section-num">7 / 7 · ~1 min</span>
           <h2>Hva betyr dette?</h2>
           <div class="cols">
             <pre><code>       o                    O
@@ -842,10 +1077,17 @@
                 <li>Neste KFK-modell kan leve i rammeverket fra dag én</li>
                 <li>Tydelig ansvarsfordeling + standardiserte mønstre + AI-verktøy = målbar effekt på leveransetakt</li>
                 <li>Erik og Tharmira har vokst faglig gjennom prosjektet</li>
-                <li><strong>Storkunde og landbruk i produksjon</strong> — plattformen klar for neste modell</li>
+                <li><strong>Storkunde i produksjon, landbruk klar for lansering</strong> — plattformen klar for neste modell</li>
               </ul>
               <hr/>
-              <blockquote>Det handler ikke bare om commits og arkitektur — det handler om at <strong>et team ble bedre</strong>. Det er faglig-autoritet og varme.</blockquote>
+              <blockquote>Det handler ikke bare om commits og arkitektur — det handler om at <strong>et team ble bedre</strong>.
+<br><br>
+🎂 Hver kake markerte en milepæl.<br>
+👥 Hvert PR review var en læringsmulighet.<br>
+📈 Hvert verktøy gjorde hverdagen bedre.<br>
+<br>
+<strong>Det er faglig-autoritet og varme.</strong>
+</blockquote>
             </div>
           </div>
         </section>
@@ -875,6 +1117,26 @@
         height: 720,
         margin: 0.06,
         plugins: [],
+
+        // Enable auto-animate for smooth transitions
+        autoAnimate: true,
+        autoAnimateDuration: 0.6,
+        autoAnimateEasing: 'ease-out',
+
+        // Fragment settings
+        fragments: true,
+        fragmentInURL: false,
+
+        // View settings
+        backgroundTransition: 'fade',
+
+        // Navigation
+        keyboard: true,
+        touch: true,
+        loop: false,
+
+        // Performance
+        preloadIframes: false,
       });
     </script>
   </body>
