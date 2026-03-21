@@ -11,6 +11,7 @@
       var remoteUrl = new URL('remote.html?id=' + id, location.href).href;
       var urlEl = document.getElementById('remote-url');
       var qrEl = document.getElementById('remote-qr');
+      qrEl.innerHTML = '';
       if (urlEl) {
         urlEl.textContent = remoteUrl;
         urlEl.href = remoteUrl;
@@ -57,29 +58,18 @@
     connections.forEach(function (conn) { if (conn.open) conn.send(state); });
   }
 
-  // Trykk R for å vise/skjule remote-overlay
+  var dialog = document.getElementById('remote-dialog');
+  var closeBtn = document.getElementById('remote-close');
+
+  if (closeBtn) closeBtn.addEventListener('click', function () { dialog.close(); });
+
+  // Trykk R for å åpne/lukke
   document.addEventListener('keydown', function (e) {
     if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      var overlay = document.getElementById('remote-overlay');
-      if (overlay) overlay.hidden = !overlay.hidden;
+      if (dialog.open) dialog.close();
+      else dialog.showModal();
     }
   });
-
-  // Klikk på bakgrunnen eller ✕ for å lukke
-  var overlay = document.getElementById('remote-overlay');
-  if (overlay) {
-    overlay.addEventListener('click', function (e) {
-      e.stopPropagation();
-      if (e.target === overlay) overlay.hidden = true;
-    });
-    var closeBtn = document.getElementById('remote-close');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        overlay.hidden = true;
-      });
-    }
-  }
 
   function start() {
     if (window.Reveal && Reveal.isReady()) init();
