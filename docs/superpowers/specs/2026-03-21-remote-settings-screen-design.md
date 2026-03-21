@@ -28,13 +28,21 @@ Both Henry and Ahmed hold their own devices during the presentation. Presentatio
 Applies a CSS custom property `--notes-font-size` on the `#notes` element. Stored in `localStorage`. Affects only the device it is set on.
 
 ### Slide font size
-Expressed as a scale factor (e.g. 1.0 = 100%, 1.15 = 115%). When changed, the remote sends an action to the main screen, which applies it to Reveal.js via `Reveal.configure({ scale: value })` and rebroadcasts to all other connected remotes so their sliders stay in sync. Current value is included in the main screen's reconnect state so late-joining remotes receive it immediately.
+Expressed as a scale factor (e.g. 1.0 = 100%, 1.15 = 115%). When changed, the remote sends an action to the main screen, which applies it to Reveal.js via `Reveal.configure({ scale: value })` followed by `Reveal.layout()` to force immediate reflow, then rebroadcasts to all other connected remotes so their sliders stay in sync. Current value is included in the main screen's reconnect state so late-joining remotes receive it immediately.
+
+Note: `Reveal.configure({ scale })` scales the entire slide viewport (not only text). This is intentional — it achieves a uniform zoom effect on the projector.
 
 ### Timer duration
-Replaces the hardcoded `TOTAL = 15 * 60` in `remote.html`. When changed, the remote sends an action to the main screen, which stores the new value and rebroadcasts to all remotes. The `total` is included in the `{type: 'timer', startedAt, total}` broadcast so any remote that connects after the timer has started uses the correct duration.
+Replaces the hardcoded `TOTAL = 15 * 60` in `remote.html`. Stepper increment: 5 minutes. Minimum: 5 minutes. Maximum: 60 minutes. Display as whole minutes only.
+
+When changed, the remote sends an action to the main screen, which stores the new value and rebroadcasts to all remotes. The `total` is included in the `{type: 'timer', startedAt, total}` broadcast so any remote that connects after the timer has started uses the correct duration.
+
+If the timer is already running when a duration change arrives, the new `total` takes effect immediately — the display recalculates remaining time as `total − elapsed` without resetting `startedAt`. The timer is not restarted.
 
 ### Keep screen awake
-Uses the [Wake Lock API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API) to prevent the phone screen from sleeping. Stored in `localStorage`. Re-acquires the lock automatically if the page becomes visible again after being backgrounded. Displayed with a "requires Wake Lock API" sublabel — degrades gracefully on unsupported browsers.
+Uses the [Wake Lock API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API) to prevent the phone screen from sleeping. Stored in `localStorage`. Degrades gracefully on unsupported browsers (iOS Safari 16.4+ required).
+
+Re-acquire on visibility change: register a `visibilitychange` listener that releases the current sentinel and re-requests the Wake Lock when `document.visibilityState === 'visible'` and `keepAwake` is true. The existing sentinel must be released before re-requesting. Errors from the re-request are caught and silently ignored. Displayed with a sublabel noting Wake Lock API support is required.
 
 ---
 
@@ -87,7 +95,10 @@ Hald skjermen vakken       [toggle]  → local
 | `timer` | `{type, startedAt, total}` | Remote starts countdown with correct total |
 
 ### Reconnect sync
-When a remote connects, the main screen includes `fontScale` and `timerTotal` in its first state broadcast so the remote initialises from current values rather than defaults.
+When a remote connects, the main screen includes `fontScale` and `timerTotal` in its first state broadcast so the remote initialises from current values rather than defaults. Additionally, the existing timer reconnect send (`{type: 'timer', startedAt}`) in `remote-control.js` is updated to `{type: 'timer', startedAt, total: timerTotal}` — this send only fires when the timer is running (`timerStartedAt !== null`).
+
+### Simultaneous edits
+Last-write-wins. The main screen processes incoming actions serially; whichever `timer-duration` or `font-scale` message arrives last becomes the authoritative value. The losing remote's control snaps to the canonical value when the rebroadcast arrives.
 
 ---
 
@@ -115,9 +126,10 @@ All settings stored in `localStorage` under predictable keys:
 - Use `--notes-font-size` CSS custom property on `#notes`
 
 **`assets/js/remote-control.js`**
-- Handle `font-scale` action: apply `Reveal.configure({ scale })`, store current value, rebroadcast to all remotes
+- Handle `font-scale` action: apply `Reveal.configure({ scale })` + `Reveal.layout()`, store current value, rebroadcast to all remotes
 - Handle `timer-duration` action: store `timerTotal`, rebroadcast, include in timer broadcasts
 - Include `fontScale` and `timerTotal` in reconnect state broadcast
+- Update existing `conn.on('open')` timer reconnect send to `{type: 'timer', startedAt: timerStartedAt, total: timerTotal}` (only sent when timer is running)
 
 ---
 
