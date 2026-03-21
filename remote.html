@@ -129,9 +129,6 @@
 
   <div id="notes"></div>
 
-  <div id="no-id" hidden>
-    <p>Åpne presentasjonen og trykk <strong>R</strong> for å få QR-koden.</p>
-  </div>
 
   <div id="log"></div>
 
@@ -147,7 +144,7 @@
 
     var counterEl = document.getElementById('counter');
     var notesEl = document.getElementById('notes');
-    var noId = document.getElementById('no-id');
+
     var btnPrev = document.getElementById('btn-prev');
     var btnNext = document.getElementById('btn-next');
     var logEl = document.getElementById('log');
@@ -174,6 +171,11 @@
 
     btnPrev.addEventListener('click', function () { send('prev'); });
     btnNext.addEventListener('click', function () { send('next'); });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') send('prev');
+      else if (e.key === 'ArrowRight' || e.key === ' ') send('next');
+    });
 
     var timerEl = document.getElementById('timer');
     var TOTAL = 15 * 60;
@@ -204,9 +206,7 @@
       timerEl.className = '';
     }
 
-    if (!targetId) {
-      noId.hidden = false;
-    } else {
+    if (targetId) {
       var peer = new Peer({ config: { iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
