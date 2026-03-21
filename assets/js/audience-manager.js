@@ -253,8 +253,8 @@
     if (cornerEl && window.QRCode) {
       new QRCode(cornerEl, {
         text: AUDIENCE_URL,
-        width: 154,
-        height: 154,
+        width: 240,
+        height: 240,
         colorDark: '#1a1a2e',
         colorLight: '#ffffff',
       });

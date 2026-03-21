@@ -148,25 +148,22 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  opacity: 0.72;
-  transition: opacity 0.2s ease;
 }
-#audience-qr-corner:hover { opacity: 1; }
 
 #audience-qr-corner-code {
   background: white;
-  border-radius: 8px;
-  padding: 6px;
-  width: 166px;
-  height: 166px;
+  border-radius: 10px;
+  padding: 8px;
+  width: 256px;
+  height: 256px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 #audience-qr-corner-code img,
 #audience-qr-corner-code canvas {
-  width: 154px !important;
-  height: 154px !important;
+  width: 240px !important;
+  height: 240px !important;
 }
 
 #audience-qr-corner-label {
