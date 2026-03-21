@@ -2,32 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const slides = [
-  '00-title',
-  '01a-om-oss',
-  '01-customer-intro',
-  '01c-fjor-vs-naa',
-  '02a-storkunde',
-  '02b-landbruk',
-  '03a-container-debate',
-  '03b-architecture',
-  '04-framework',
-  '05a-philosophy',
-  '05b-forbidden',
-  '05c-refactor-claude',
-  '05d-henry-scripts',
-  '05e-kfk-start',
-  '05f-ahmed-pr-queue',
-  '05g-setup-script',
-  '05h-ahmed-manual',
-  '05i-aurelie',
-  '06a-pappaperm',
-  '06b-frontend-better',
-  '06c-fastest-fingers',
-  '06d-growth',
-  '07-meaning',
-  '08-closing',
-];
+const slides = require('./assets/js/slides-list.js');
 
 const slidesHtml = slides
   .map(name => {
