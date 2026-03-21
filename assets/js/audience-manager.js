@@ -201,11 +201,12 @@
     });
   }
 
-  // ---- QR code for the join slide ----
+  // ---- QR code for the join slide + persistent corner QR ----
   function setupQR() {
+    var AUDIENCE_URL = new URL('audience.html', location.href).href;
+
     var qrEl = document.getElementById('audience-qr');
     var urlEl = document.getElementById('audience-join-url');
-    var AUDIENCE_URL = new URL('audience.html', location.href).href;
     if (urlEl) urlEl.textContent = AUDIENCE_URL;
     if (qrEl && window.QRCode) {
       new QRCode(qrEl, {
@@ -214,6 +215,17 @@
         height: 200,
         colorDark: '#1a1a2e',
         colorLight: '#f0f0f0',
+      });
+    }
+
+    var cornerEl = document.getElementById('audience-qr-corner-code');
+    if (cornerEl && window.QRCode) {
+      new QRCode(cornerEl, {
+        text: AUDIENCE_URL,
+        width: 64,
+        height: 64,
+        colorDark: '#1a1a2e',
+        colorLight: '#ffffff',
       });
     }
   }
