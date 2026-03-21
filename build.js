@@ -4,8 +4,8 @@ const path = require('path');
 
 const slides = [
   '00-title',
+  '01a-om-oss',
   '01-customer-intro',
-  '01b-team',
   '01c-fjor-vs-naa',
   '02a-storkunde',
   '02b-landbruk',
