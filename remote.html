@@ -658,6 +658,13 @@
 
     previewFrame.addEventListener('load', function () {
       if (showPreview) sendToPreview(lastH, lastV);
+      // Forward keyboard navigation from iframe (same-origin) to remote
+      try {
+        previewFrame.contentWindow.addEventListener('keydown', function (e) {
+          if (e.key === 'ArrowLeft') { e.preventDefault(); send('prev'); }
+          else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); send('next'); }
+        });
+      } catch (e) {}
     });
 
     // ── PeerJS connection ──
