@@ -65,6 +65,14 @@
     }
   });
 
+  // Klikk på bakgrunnen for å lukke
+  var overlay = document.getElementById('remote-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.hidden = true;
+    });
+  }
+
   function start() {
     if (window.Reveal && Reveal.isReady()) init();
     else if (window.Reveal) Reveal.addEventListener('ready', init);
