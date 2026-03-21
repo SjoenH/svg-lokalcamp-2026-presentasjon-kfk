@@ -150,18 +150,18 @@
 
 #audience-qr-corner-code {
   background: white;
-  border-radius: 6px;
-  padding: 4px;
-  width: 72px;
-  height: 72px;
+  border-radius: 8px;
+  padding: 6px;
+  width: 166px;
+  height: 166px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 #audience-qr-corner-code img,
 #audience-qr-corner-code canvas {
-  width: 64px !important;
-  height: 64px !important;
+  width: 154px !important;
+  height: 154px !important;
 }
 
 #audience-qr-corner-label {
