@@ -126,12 +126,15 @@
   function showEmote(connId, emoji) {
     var slot = wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]');
     if (!slot) return;
+    var rect = slot.getBoundingClientRect();
     var el = document.createElement('div');
     el.className = 'floating-emote';
     el.textContent = emoji;
-    // Random horizontal jitter within the slot
-    el.style.left = Math.round(20 + Math.random() * 20) + '%';
-    slot.appendChild(el);
+    // Position fixed on body so it escapes overflow:hidden on party-bar-wrap
+    el.style.position = 'fixed';
+    el.style.left = Math.round(rect.left + rect.width * (0.15 + Math.random() * 0.7)) + 'px';
+    el.style.top = Math.round(rect.top) + 'px';
+    document.body.appendChild(el);
     el.addEventListener('animationend', function () { el.remove(); });
   }
 
