@@ -6,7 +6,7 @@
   let timerStartedAt = null;
 
   function init() {
-    peer = new Peer({ config: { iceServers: [
+    peer = new Peer('kfk-lokalcamp-2026', { config: { iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
     ]}});
