@@ -48,17 +48,21 @@
     });
 
     // Remove slots that are no longer present
-    var existing = wrap.querySelectorAll('.party-slot');
-    existing.forEach(function (el) {
+    wrap.querySelectorAll('.party-slot').forEach(function (el) {
       if (!audienceMembers[el.dataset.connId]) el.remove();
     });
 
-    // Add/reorder slots
-    sorted.forEach(function (connId, idx) {
-      var member = audienceMembers[connId];
-      var existing = wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]');
-      if (!existing) {
-        var slot = buildSlot(connId, member);
+    // Snapshot positions BEFORE reorder (only already-existing slots)
+    var snapBefore = {};
+    sorted.forEach(function (connId) {
+      var el = wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]');
+      if (el) snapBefore[connId] = el.getBoundingClientRect().left;
+    });
+
+    // Add missing slots
+    sorted.forEach(function (connId) {
+      if (!wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]')) {
+        var slot = buildSlot(connId, audienceMembers[connId]);
         if (slot) wrap.appendChild(slot);
       }
     });
@@ -70,6 +74,24 @@
     });
 
     updateSlotWidths();
+
+    // FLIP animation — slide slots that actually moved
+    sorted.forEach(function (connId) {
+      if (snapBefore[connId] === undefined) return; // new slot, no animation
+      var slot = wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]');
+      if (!slot) return;
+      var delta = snapBefore[connId] - slot.getBoundingClientRect().left;
+      if (Math.abs(delta) < 1) return;
+      slot.style.transition = 'none';
+      slot.style.transform = 'translateX(' + delta + 'px)';
+      void slot.offsetWidth; // force reflow
+      slot.style.transition = 'transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      slot.style.transform = '';
+      slot.addEventListener('transitionend', function cleanup() {
+        slot.style.transition = '';
+        slot.removeEventListener('transitionend', cleanup);
+      });
+    });
   }
 
   // ---- Speech bubble ----
@@ -203,6 +225,9 @@
 
   // ---- QR code for the join slide + persistent corner QR ----
   function setupQR() {
+    // Skip in preview iframe (remote.html embeds index.html?preview=1)
+    var isPreview = new URLSearchParams(location.search).has('preview');
+
     var AUDIENCE_URL = new URL('audience.html', location.href).href;
 
     var qrEl = document.getElementById('audience-qr');
@@ -216,6 +241,12 @@
         colorDark: '#1a1a2e',
         colorLight: '#f0f0f0',
       });
+    }
+
+    var cornerWrap = document.getElementById('audience-qr-corner');
+    if (isPreview) {
+      if (cornerWrap) cornerWrap.style.display = 'none';
+      return;
     }
 
     var cornerEl = document.getElementById('audience-qr-corner-code');
