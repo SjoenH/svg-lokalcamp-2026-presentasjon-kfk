@@ -1,4 +1,4 @@
-Reveal.initialize({
+const revealConfig = {
   hash: true,
   slideNumber: 'c/t',
   progress: true,
@@ -30,4 +30,4 @@ Reveal.initialize({
 
   // Performance
   preloadIframes: false,
-});
+};

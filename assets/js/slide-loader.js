@@ -47,8 +47,8 @@ async function loadSlides() {
   }
 }
 
-// Load slides when DOM is ready, before initializing Reveal
+// Load slides when DOM is ready, then initialize Reveal
 document.addEventListener('DOMContentLoaded', async () => {
   await loadSlides();
-  // config.js will initialize Reveal after being loaded
+  Reveal.initialize(revealConfig);
 });
