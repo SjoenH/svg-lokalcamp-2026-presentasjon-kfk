@@ -193,6 +193,18 @@ window.AUDIENCE_SENTENCES = [
   { id: 'kjenner-til', text: 'Dette kjenner me til!' },
   { id: 'meir-kake',   text: 'Meir kake! 🎂' },
   { id: 'heia-kfk',   text: 'Heia KFK! 🎉' },
+  { id: 'kjedelig',    text: 'Litt kjedeleg dette...' },
+  { id: 'sov',         text: 'Zzzz... 😴' },
+  { id: 'feil',        text: 'Det der er feil!' },
+  { id: 'vi-visste',   text: 'Dette visste me frå før' },
+  { id: 'ny-jobb',     text: 'Eg ser etter ny jobb 👀' },
+  { id: 'hva-skjer',   text: 'Kva skjer eigentleg?' },
+  { id: 'ikke-sant',   text: 'Er det verkeleg sant?' },
+  { id: 'pause',       text: 'Kan me ta pause?' },
+  { id: 'kaffe',       text: 'Eg treng kaffi ☕' },
+  { id: 'ми',          text: 'Eg forstår ingenting' },
+  { id: 'hjelp',       text: 'HJELP' },
+  { id: 'konsulent',   text: 'Som konsulent...' },
 ];
 
 window.AUDIENCE_EMOTES = [
