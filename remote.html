@@ -342,9 +342,9 @@
     </button>
 
     <div class="controls">
-      <button id="btn-prev" disabled>&#8592;</button>
+      <button id="btn-prev">&#8592;</button>
       <button id="btn-gear">⚙</button>
-      <button id="btn-next" disabled>&#8594;</button>
+      <button id="btn-next">&#8594;</button>
     </div>
   </div>
 
@@ -462,7 +462,7 @@
     var previewToggle   = document.getElementById('preview-toggle');
     var previewFrame    = document.getElementById('preview-frame');
 
-    var lastH = 0, lastV = 0;
+    var lastH = 0, lastV = 0, lastTotal = 0;
     var conn;
 
     // ── Logging ──
@@ -478,13 +478,37 @@
     var btnReconnect = document.getElementById('btn-reconnect');
 
     function setConnected(c) {
-      btnPrev.disabled = !c;
-      btnNext.disabled = !c;
       btnReconnect.style.display = c ? 'none' : 'block';
     }
 
+    function isConnected() { return conn && conn.open; }
+
     function send(action, extra) {
-      if (conn && conn.open) conn.send(Object.assign({ action: action }, extra));
+      if (isConnected()) conn.send(Object.assign({ action: action }, extra));
+    }
+
+    function getPreviewTotal() {
+      try {
+        var r = previewFrame.contentWindow.Reveal;
+        if (r && r.isReady()) return r.getTotalSlides();
+      } catch (e) {}
+      return lastTotal || 0;
+    }
+
+    function navigatePrev() {
+      if (isConnected()) { send('prev'); return; }
+      if (lastH > 0) { lastH--; lastV = 0; }
+      sendToPreview(lastH, lastV);
+      var t = getPreviewTotal();
+      if (t) counterEl.textContent = (lastH + 1) + ' / ' + t;
+    }
+
+    function navigateNext() {
+      if (isConnected()) { send('next'); return; }
+      var total = getPreviewTotal();
+      if (!total || lastH < total - 1) { lastH++; lastV = 0; }
+      sendToPreview(lastH, lastV);
+      if (total) counterEl.textContent = (lastH + 1) + ' / ' + total;
     }
 
     // ── Timer ──
@@ -529,13 +553,13 @@
     timerEl.textContent = formatTime(timerTotal);
 
     // ── Navigation ──
-    btnPrev.addEventListener('click', function () { send('prev'); });
-    btnNext.addEventListener('click', function () { send('next'); });
+    btnPrev.addEventListener('click', navigatePrev);
+    btnNext.addEventListener('click', navigateNext);
 
     document.addEventListener('keydown', function (e) {
       if (viewSettings.style.display !== 'none') return;
-      if (e.key === 'ArrowLeft') send('prev');
-      else if (e.key === 'ArrowRight' || e.key === ' ') send('next');
+      if (e.key === 'ArrowLeft') { e.preventDefault(); navigatePrev(); }
+      else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigateNext(); }
     });
 
     // ── View switching ──
@@ -661,8 +685,8 @@
       // Forward keyboard navigation from iframe (same-origin) to remote
       try {
         previewFrame.contentWindow.addEventListener('keydown', function (e) {
-          if (e.key === 'ArrowLeft') { e.preventDefault(); send('prev'); }
-          else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); send('next'); }
+          if (e.key === 'ArrowLeft') { e.preventDefault(); navigatePrev(); }
+          else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigateNext(); }
         });
       } catch (e) {}
     });
@@ -706,6 +730,7 @@
           if (data.type !== 'state') return;
           lastH = data.h || 0;
           lastV = data.v || 0;
+          lastTotal = data.total || lastTotal;
           if (showPreview) sendToPreview(lastH, lastV);
           var current = lastH + 1;
           counterEl.textContent = current + ' / ' + (data.total || '?');
