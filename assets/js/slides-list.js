@@ -25,7 +25,6 @@ const SLIDES = [
   '06d-growth',
   '07-meaning',
   '08-closing',
-  '09-audience-join',
   '10-audience-stats',
 ];
 
