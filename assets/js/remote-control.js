@@ -7,7 +7,7 @@
   var remoteCount = 0;
   var timerStartedAt = null;
   var fontScale = 1.0;
-  var timerTotal = 900;
+  var timerTotal = 780;
 
   var funPrevAudio = null;
   var funDismissTimeout = null;
