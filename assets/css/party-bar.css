@@ -93,7 +93,7 @@ body.audience-free-mode .reveal {
 /* ---- Speech bubble ---- */
 .party-bubble {
   position: absolute;
-  bottom: 30px;
+  bottom: 56px;
   left: 50%;
   transform: translateX(-50%);
   background: #ffffff;
