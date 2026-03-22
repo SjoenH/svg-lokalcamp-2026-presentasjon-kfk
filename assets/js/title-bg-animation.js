@@ -18,6 +18,8 @@ const TEXT_FLEE_RADIUS  = 60;
 const TEXT_FLEE_FORCE   = 0.3;
 const MOUSE_FLEE_RADIUS = 100;
 const MOUSE_FLEE_FORCE  = 0.4;
+const CHAR_FLEE_RADIUS  = 80;
+const CHAR_FLEE_FORCE   = 0.35;
 const MAX_FORCE      = 0.06;
 const EAGLE_TURN     = 0.03;  // how sharply falcons steer toward nearest boid
 const COLOR          = '#450d21';
@@ -32,6 +34,8 @@ let boids          = [];
 let falcons        = [];
 let textRects      = [];
 let styledChildren = [];
+let charPositions  = [];
+let charTick       = 0;
 
 function createBoid() {
   const angle = Math.random() * Math.PI * 2;
@@ -60,6 +64,15 @@ function clamp(v, max) {
 
 function loop() {
   ctx.clearRect(0, 0, W, H);
+
+  // Refresh character positions every 10 frames
+  if (++charTick >= 10) {
+    charTick = 0;
+    charPositions = Array.from(document.querySelectorAll('.party-slot')).map(function (el) {
+      const r = el.getBoundingClientRect();
+      return { x: r.left + r.width * 0.5, y: r.top + r.height * 0.5 };
+    });
+  }
 
   // update falcons — steer toward nearest boid
   for (const e of falcons) {
@@ -117,6 +130,17 @@ function loop() {
       const d = Math.hypot(dx, dy);
       if (d < MOUSE_FLEE_RADIUS && d > 0) {
         const strength = (1 - d / MOUSE_FLEE_RADIUS) * MOUSE_FLEE_FORCE;
+        ax += (dx / d) * strength;
+        ay += (dy / d) * strength;
+      }
+    }
+
+    // avoid characters
+    for (const cp of charPositions) {
+      const dx = b.x - cp.x, dy = b.y - cp.y;
+      const d = Math.hypot(dx, dy);
+      if (d < CHAR_FLEE_RADIUS && d > 0) {
+        const strength = (1 - d / CHAR_FLEE_RADIUS) * CHAR_FLEE_FORCE;
         ax += (dx / d) * strength;
         ay += (dy / d) * strength;
       }
@@ -246,9 +270,11 @@ function stopAnimation() {
   }
   styledChildren = [];
   if (canvas) { canvas.remove(); canvas = null; ctx = null; }
-  boids     = [];
-  falcons   = [];
-  textRects = [];
+  boids         = [];
+  falcons       = [];
+  textRects     = [];
+  charPositions = [];
+  charTick      = 0;
 }
 
 function handleSlide(slideEl) {
