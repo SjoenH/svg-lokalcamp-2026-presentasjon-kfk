@@ -3,14 +3,14 @@
 
   var isPreview = new URLSearchParams(location.search).has('preview');
 
-  let peer;
-  let connections = [];
-  let timerStartedAt = null;
-  let fontScale = 1.0;
-  let timerTotal = 900;
+  var ws;
+  var remoteCount = 0;
+  var timerStartedAt = null;
+  var fontScale = 1.0;
+  var timerTotal = 900;
 
-  let funPrevAudio = null;
-  let funDismissTimeout = null;
+  var funPrevAudio = null;
+  var funDismissTimeout = null;
   const funAudio = {};
   FUN_CONFIG.forEach(function (cfg) { funAudio[cfg.id] = new Audio(cfg.src); });
 
@@ -20,14 +20,20 @@
   document.body.appendChild(peerStatus);
 
   function updatePeerStatus() {
-    var open = connections.filter(function (c) { return c.open; }).length;
-    peerStatus.textContent = open > 0 ? '⬤ ' + open + ' remote' + (open > 1 ? 's' : '') : '○ ingen remote';
-    peerStatus.style.color = open > 0 ? 'rgba(74,222,128,0.5)' : 'rgba(255,255,255,0.2)';
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      peerStatus.textContent = '○ ingen server';
+      peerStatus.style.color = 'rgba(255,255,255,0.2)';
+      return;
+    }
+    peerStatus.textContent = remoteCount > 0
+      ? '⬤ ' + remoteCount + ' remote' + (remoteCount > 1 ? 's' : '')
+      : '⬤ server ok';
+    peerStatus.style.color = remoteCount > 0 ? 'rgba(74,222,128,0.5)' : 'rgba(255,255,255,0.3)';
   }
 
   updatePeerStatus();
 
-  var REMOTE_URL = new URL('remote.html?id=kfk-lokalcamp-2026', location.href).href;
+  var REMOTE_URL = new URL('remote.html', location.href).href;
 
   document.addEventListener('DOMContentLoaded', function () {
     var urlEl = document.getElementById('remote-url');
@@ -38,88 +44,90 @@
     }
   });
 
-  function init() {
-    peer = new Peer('kfk-lokalcamp-2026', { config: { iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-    ]}});
+  function wsUrl() {
+    return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+  }
 
-    peer.on('open', function () {
+  function wsSend(data) {
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data));
+  }
+
+  function init() {
+    ws = new WebSocket(wsUrl());
+
+    ws.addEventListener('open', function () {
+      wsSend({ type: 'presenter-init' });
+      window.presenterWS = ws;
       updatePeerStatus();
     });
 
-    peer.on('error', function (err) {
-      if (err.type === 'unavailable-id') {
-        // ID opptatt fra forrige sesjon — vent og prøv på nytt
-        setTimeout(function () { peer.destroy(); init(); }, 2000);
-      }
-    });
+    ws.addEventListener('message', function (e) {
+      var data;
+      try { data = JSON.parse(e.data); } catch { return; }
 
-    peer.on('connection', function (conn) {
-      if (conn.label === 'audience') {
-        if (window.AudienceManager) window.AudienceManager.handleConnection(conn);
+      if (data.type === 'connected') return;
+
+      if (data.type === 'remote-count') {
+        remoteCount = data.count || 0;
+        updatePeerStatus();
         return;
       }
-      connections.push(conn);
-      conn.on('open', function () {
-        updatePeerStatus();
-        sendStateTo(conn);
-        if (timerStartedAt !== null) conn.send({ type: 'timer', startedAt: timerStartedAt, total: timerTotal });
-      });
-      conn.on('data', function (data) {
-        if (data.action === 'next') Reveal.next();
-        else if (data.action === 'prev') Reveal.prev();
-        else if (data.action === 'timer-start') {
-          timerStartedAt = Date.now();
-          connections.forEach(function (c) { if (c.open) c.send({ type: 'timer', startedAt: timerStartedAt, total: timerTotal }); });
-        } else if (data.action === 'timer-stop') {
-          timerStartedAt = null;
-          connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-stop' }); });
-        } else if (data.action === 'font-scale') {
-          fontScale = data.value;
-          var revealEl = document.querySelector('.reveal');
-          if (revealEl) revealEl.style.fontSize = (fontScale * 2) + 'rem';
-          connections.forEach(function (c) { if (c.open) c.send({ type: 'font-scale', value: fontScale }); });
-        } else if (data.action === 'timer-duration') {
-          timerTotal = data.total;
-          connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-duration', total: timerTotal }); });
-        } else if (data.action === 'fun') {
-          var cfg = FUN_CONFIG.find(function (c) { return c.id === data.id; });
-          if (!cfg) return;
-          if (funPrevAudio) { funPrevAudio.pause(); funPrevAudio.currentTime = 0; }
-          if (funDismissTimeout) clearTimeout(funDismissTimeout);
-          var audio = funAudio[data.id];
-          audio.currentTime = 0;
-          audio.play().catch(function () {});
-          funPrevAudio = audio;
-          var overlay = document.getElementById('fun-overlay');
-          var progressEl = overlay.querySelector('.fun-progress');
-          overlay.querySelector('.fun-emoji').textContent = cfg.emoji;
-          overlay.querySelector('.fun-text').textContent  = cfg.text;
-          progressEl.classList.remove('animated');
-          void progressEl.offsetWidth;
-          progressEl.classList.add('animated');
-          overlay.classList.add('visible');
-          funDismissTimeout = setTimeout(function () { overlay.classList.remove('visible'); }, 3000);
-        }
-      });
-      conn.on('close', function () {
-        connections = connections.filter(function (c) { return c !== conn; });
-        updatePeerStatus();
-      });
+
+      // Audience messages → route to AudienceManager
+      if (data.type === 'audience-join' || data.type === 'audience-speak' ||
+          data.type === 'audience-emote' || data.type === 'audience-move' ||
+          data.type === 'audience-disconnect' || data.type === 'stats-restore') {
+        if (window.AudienceManager) window.AudienceManager.handleMessage(data);
+        return;
+      }
+
+      // Remote control actions
+      if (data.action === 'next') Reveal.next();
+      else if (data.action === 'prev') Reveal.prev();
+      else if (data.action === 'timer-start') {
+        timerStartedAt = Date.now();
+        wsSend({ type: 'timer', startedAt: timerStartedAt, total: timerTotal });
+      } else if (data.action === 'timer-stop') {
+        timerStartedAt = null;
+        wsSend({ type: 'timer-stop' });
+      } else if (data.action === 'font-scale') {
+        fontScale = data.value;
+        var revealEl = document.querySelector('.reveal');
+        if (revealEl) revealEl.style.fontSize = (fontScale * 2) + 'rem';
+        wsSend({ type: 'font-scale', value: fontScale });
+      } else if (data.action === 'timer-duration') {
+        timerTotal = data.total;
+        wsSend({ type: 'timer-duration', total: timerTotal });
+      } else if (data.action === 'fun') {
+        var cfg = FUN_CONFIG.find(function (c) { return c.id === data.id; });
+        if (!cfg) return;
+        if (funPrevAudio) { funPrevAudio.pause(); funPrevAudio.currentTime = 0; }
+        if (funDismissTimeout) clearTimeout(funDismissTimeout);
+        var audio = funAudio[data.id];
+        audio.currentTime = 0;
+        audio.play().catch(function () {});
+        funPrevAudio = audio;
+        var overlay = document.getElementById('fun-overlay');
+        var progressEl = overlay.querySelector('.fun-progress');
+        overlay.querySelector('.fun-emoji').textContent = cfg.emoji;
+        overlay.querySelector('.fun-text').textContent  = cfg.text;
+        progressEl.classList.remove('animated');
+        void progressEl.offsetWidth;
+        progressEl.classList.add('animated');
+        overlay.classList.add('visible');
+        funDismissTimeout = setTimeout(function () { overlay.classList.remove('visible'); }, 3000);
+      }
     });
 
-    window.presenterPeer = peer;
+    ws.addEventListener('close', function () {
+      window.presenterWS = null;
+      remoteCount = 0;
+      updatePeerStatus();
+      setTimeout(init, 2000);
+    });
 
-    Reveal.addEventListener('slidechanged', function (e) {
-      broadcastState();
-      if (e.indexh === 0) {
-        timerStartedAt = null;
-        connections.forEach(function (c) { if (c.open) c.send({ type: 'timer-stop' }); });
-      } else if (e.previousSlide && e.previousSlide === Reveal.getSlides()[0]) {
-        timerStartedAt = Date.now();
-        connections.forEach(function (c) { if (c.open) c.send({ type: 'timer', startedAt: timerStartedAt, total: timerTotal }); });
-      }
+    ws.addEventListener('error', function () {
+      updatePeerStatus();
     });
   }
 
@@ -131,17 +139,23 @@
     return { type: 'state', h: idx.h, v: idx.v || 0, total: Reveal.getTotalSlides(), title: title.trim(), notes: notes.trim() };
   }
 
-  function sendStateTo(conn) {
-    if (conn.open) {
-      conn.send(getState());
-      conn.send({ type: 'font-scale', value: fontScale });
-      conn.send({ type: 'timer-duration', total: timerTotal });
-    }
+  function broadcastState() {
+    wsSend(getState());
+    wsSend({ type: 'font-scale', value: fontScale });
+    wsSend({ type: 'timer-duration', total: timerTotal });
   }
 
-  function broadcastState() {
-    var state = getState();
-    connections.forEach(function (conn) { if (conn.open) conn.send(state); });
+  function setupRevealListeners() {
+    Reveal.addEventListener('slidechanged', function (e) {
+      wsSend(getState());
+      if (e.indexh === 0) {
+        timerStartedAt = null;
+        wsSend({ type: 'timer-stop' });
+      } else if (e.previousSlide && e.previousSlide === Reveal.getSlides()[0]) {
+        timerStartedAt = Date.now();
+        wsSend({ type: 'timer', startedAt: timerStartedAt, total: timerTotal });
+      }
+    });
   }
 
   var dialog = document.getElementById('remote-dialog');
@@ -149,7 +163,6 @@
 
   if (closeBtn) closeBtn.addEventListener('click', function () { dialog.close(); });
 
-  // Trykk R for å åpne/lukke
   document.addEventListener('keydown', function (e) {
     if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey && !e.altKey) {
       if (dialog.open) dialog.close();
@@ -158,9 +171,14 @@
   });
 
   function start() {
-    if (window.Reveal && Reveal.isReady()) init();
-    else if (window.Reveal) Reveal.addEventListener('ready', init);
-    else setTimeout(start, 200);
+    if (window.Reveal && Reveal.isReady()) {
+      init();
+      setupRevealListeners();
+    } else if (window.Reveal) {
+      Reveal.addEventListener('ready', function () { init(); setupRevealListeners(); });
+    } else {
+      setTimeout(start, 200);
+    }
   }
 
   if (!isPreview) {

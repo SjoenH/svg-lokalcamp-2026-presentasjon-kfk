@@ -427,7 +427,6 @@
     <button class="btn-secondary" id="btn-reselect">Vel ny karakter</button>
   </div>
 
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="assets/js/audience-config.js"></script>
   <script>
   (function () {
@@ -435,8 +434,7 @@
 
     var selectedCharId = null;
     var myName = '';
-    var peer = null;
-    var conn = null;
+    var ws = null;
 
     // ---- Restore session ----
     var saved = {};
@@ -496,7 +494,7 @@
       btn.className = 'sentence-btn';
       btn.textContent = s.text;
       btn.addEventListener('click', function () {
-        if (conn && conn.open) conn.send({ type: 'audience-speak', sentenceId: s.id });
+        if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'audience-speak', sentenceId: s.id }));
       });
       sentenceGrid.appendChild(btn);
     });
@@ -509,7 +507,7 @@
       btn.textContent = e.emoji;
       btn.title = e.id;
       btn.addEventListener('click', function () {
-        if (conn && conn.open) conn.send({ type: 'audience-emote', emoteId: e.id });
+        if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'audience-emote', emoteId: e.id }));
       });
       emoteGrid.appendChild(btn);
     });
@@ -572,10 +570,10 @@
 
     // ---- Move buttons ----
     document.getElementById('btn-left').addEventListener('click', function () {
-      if (conn && conn.open) conn.send({ type: 'audience-move', direction: 'left' });
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'audience-move', direction: 'left' }));
     });
     document.getElementById('btn-right').addEventListener('click', function () {
-      if (conn && conn.open) conn.send({ type: 'audience-move', direction: 'right' });
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'audience-move', direction: 'right' }));
     });
 
     // ---- Reconnect/reselect ----
@@ -596,50 +594,42 @@
       el.className = connected ? 'connected' : '';
     }
 
-    // ---- PeerJS connect ----
+    // ---- WebSocket connect ----
+    function wsUrl() {
+      return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+    }
+
     function connect() {
       showView('view-connecting');
       document.getElementById('connect-status').textContent = 'Koplar til presentasjonen…';
 
-      if (peer && !peer.destroyed) peer.destroy();
+      if (ws) { try { ws.close(); } catch (e) {} }
 
-      peer = new Peer({ config: { iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-      ]}});
+      ws = new WebSocket(wsUrl());
 
-      peer.on('open', function () {
-        conn = peer.connect('kfk-lokalcamp-2026', { label: 'audience' });
-
-        conn.on('open', function () {
-          conn.send({ type: 'audience-join', name: myName, charId: selectedCharId });
-          setupMainView();
-          showView('view-main');
-          setStatus('', true);
-        });
-
-        conn.on('data', function (data) {
-          if (data && data.type === 'audience-update') {
-            // could show member count if desired
-          }
-        });
-
-        conn.on('close', function () {
-          setStatus('frakopla', false);
-          document.getElementById('reconnect-overlay').classList.add('visible');
-        });
-
-        conn.on('error', function () {
-          setStatus('feil', false);
-          document.getElementById('reconnect-overlay').classList.add('visible');
-        });
+      ws.addEventListener('open', function () {
+        ws.send(JSON.stringify({ type: 'audience-join', name: myName, charId: selectedCharId }));
+        setupMainView();
+        showView('view-main');
+        setStatus('', true);
       });
 
-      peer.on('error', function (err) {
-        document.getElementById('connect-status').textContent =
-          err.type === 'peer-unavailable'
-            ? 'Fann ikkje presentasjonen. Er den open?'
-            : 'Tilkoplingsfeil: ' + err.type;
+      ws.addEventListener('message', function (e) {
+        var data;
+        try { data = JSON.parse(e.data); } catch { return; }
+        if (data && data.type === 'audience-update') {
+          // could show member count if desired
+        }
+      });
+
+      ws.addEventListener('close', function () {
+        setStatus('frakopla', false);
+        document.getElementById('reconnect-overlay').classList.add('visible');
+      });
+
+      ws.addEventListener('error', function () {
+        setStatus('feil', false);
+        document.getElementById('connect-status').textContent = 'Tilkoplingsfeil. Er presentasjonen open?';
       });
     }
   })();

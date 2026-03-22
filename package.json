@@ -5,11 +5,18 @@
   "main": "build.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "build:prod": "node build.js && vite build",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "serve-static": "^1.15.0",
+    "ws": "^8.18.0"
+  },
   "devDependencies": {
     "vite": "^5.4.21"
   }

@@ -3,3 +3,5 @@ index.html.backup
 kilde/
 node_modules/
 dev-server.py
+events.db
+.superpowers/

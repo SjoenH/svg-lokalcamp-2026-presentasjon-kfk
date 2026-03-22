@@ -496,7 +496,7 @@
               <span class="setting-value" id="font-scale-val">100%</span>
             </div>
           </div>
-          <span class="setting-sublabel">Synkar til projektor via WebRTC</span>
+          <span class="setting-sublabel">Synkar til projektor via server</span>
           <input type="range" id="font-scale-slider" min="1.0" max="3.0" step="0.05" value="1.0">
         </div>
       </div>
@@ -511,6 +511,17 @@
             <button class="stepper-btn" id="timer-plus">&#43;</button>
           </div>
           <span class="setting-sublabel">Synkar til alle remote-einingar</span>
+        </div>
+      </div>
+
+      <p class="group-label">Statistikk</p>
+      <div class="setting-card">
+        <div class="setting-item">
+          <div class="setting-row">
+            <span class="setting-label">Nullstill publikumsdata</span>
+          </div>
+          <span class="setting-sublabel">Slettar alle hendingar frå databasen og nullstiller statistikken</span>
+          <button id="btn-reset-stats" style="margin-top:0.6rem;background:#7f1d1d;border:none;border-radius:10px;color:#fff;font-size:0.9rem;font-weight:700;padding:0.7rem 1rem;cursor:pointer;width:100%;">Nullstill statistikk</button>
         </div>
       </div>
 
@@ -543,7 +554,6 @@
     <div id="fun-grid"></div>
   </div>
 
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="assets/js/fun-config.js"></script>
   <script>
     // ── localStorage keys & defaults ──
@@ -600,7 +610,8 @@
     var previewFrame    = document.getElementById('preview-frame');
 
     var lastH = 0, lastV = 0, lastTotal = 0;
-    var conn;
+    var ws;
+    var conn = { open: false, send: function (data) { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data)); } };
 
     // ── Logging ──
     function log(text, isError) {
@@ -618,7 +629,7 @@
       btnReconnect.style.display = c ? 'none' : 'block';
     }
 
-    function isConnected() { return conn && conn.open; }
+    function isConnected() { return ws && ws.readyState === WebSocket.OPEN; }
 
     function send(action, extra) {
       if (isConnected()) conn.send(Object.assign({ action: action }, extra));
@@ -864,81 +875,82 @@
       } catch (e) {}
     });
 
-    // ── PeerJS connection ──
-    if (targetId) {
-      var peer = new Peer({ config: { iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-      ]}});
+    // ── WebSocket connection ──
+    function wsUrl() {
+      return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+    }
 
-      peer.on('open', function (id) {
-        log('Peer klar, id=' + id.substring(0, 8) + '…');
-        conn = peer.connect(targetId, { reliable: true });
+    function connectWS() {
+      ws = new WebSocket(wsUrl());
+      conn.open = false;
 
-        conn.on('open', function () {
-          log('Tilkoblet ✓');
-          setConnected(true);
-        });
-
-        conn.on('data', function (data) {
-          if (data.type === 'timer') {
-            startTimerFrom(data.startedAt, data.total);
-            return;
-          }
-          if (data.type === 'timer-stop') { stopTimer(); return; }
-          if (data.type === 'font-scale') {
-            fontScale = data.value;
-            lsSet(LS.fontScale, fontScale);
-            fontScaleSlider.value = fontScale;
-            fontScaleVal.textContent = Math.round(fontScale * 100) + '%';
-            return;
-          }
-          if (data.type === 'timer-duration') {
-            timerTotal = data.total;
-            lsSet(LS.timerTotal, timerTotal);
-            updateTimerStepper();
-            if (!timerInterval) timerEl.textContent = formatTime(timerTotal);
-            return;
-          }
-          if (data.type !== 'state') return;
-          lastH = data.h || 0;
-          lastV = data.v || 0;
-          lastTotal = data.total || lastTotal;
-          if (showPreview) sendToPreview(lastH, lastV);
-          var current = lastH + 1;
-          counterEl.textContent = current + ' / ' + (data.total || '?');
-          if (data.notes) {
-            notesEl.innerHTML = data.notes.split('\n').filter(function (l) { return l.trim(); }).map(function (line) {
-              var m = line.match(/^(Henry|Ahmed):\s*(.*)/);
-              if (!m) return '<p class="line"><span style="color:#aaa">' + line + '</span></p>';
-              var who = m[1].toLowerCase();
-              return '<p class="line ' + who + '"><span class="speaker">' + m[1] + ':</span><span style="color:#e2e8f0">' + m[2] + '</span></p>';
-            }).join('');
-          } else {
-            notesEl.innerHTML = '';
-          }
-        });
-
-        conn.on('close', function () {
-          log('Kobling lukket', true);
-          setConnected(false);
-        });
-
-        conn.on('error', function (err) {
-          log('Koblingsfeil: ' + (err && err.message ? err.message : err), true);
-          setConnected(false);
-        });
-
-        conn.peerConnection && conn.peerConnection.addEventListener('iceconnectionstatechange', function () {
-          log('ICE: ' + conn.peerConnection.iceConnectionState);
-        });
+      ws.addEventListener('open', function () {
+        ws.send(JSON.stringify({ type: 'remote-init' }));
+        conn.open = true;
+        log('Tilkoblet ✓');
+        setConnected(true);
       });
 
-      peer.on('error', function (err) {
-        log('Peer-feil: ' + err.type + (err.message ? ' — ' + err.message : ''), true);
+      ws.addEventListener('message', function (e) {
+        var data;
+        try { data = JSON.parse(e.data); } catch { return; }
+
+        if (data.type === 'connected') { log('Server-id: ' + data.clientId.substring(0, 8) + '…'); return; }
+        if (data.type === 'timer') { startTimerFrom(data.startedAt, data.total); return; }
+        if (data.type === 'timer-stop') { stopTimer(); return; }
+        if (data.type === 'font-scale') {
+          fontScale = data.value;
+          lsSet(LS.fontScale, fontScale);
+          fontScaleSlider.value = fontScale;
+          fontScaleVal.textContent = Math.round(fontScale * 100) + '%';
+          return;
+        }
+        if (data.type === 'timer-duration') {
+          timerTotal = data.total;
+          lsSet(LS.timerTotal, timerTotal);
+          updateTimerStepper();
+          if (!timerInterval) timerEl.textContent = formatTime(timerTotal);
+          return;
+        }
+        if (data.type !== 'state') return;
+        lastH = data.h || 0;
+        lastV = data.v || 0;
+        lastTotal = data.total || lastTotal;
+        if (showPreview) sendToPreview(lastH, lastV);
+        counterEl.textContent = (lastH + 1) + ' / ' + (data.total || '?');
+        if (data.notes) {
+          notesEl.innerHTML = data.notes.split('\n').filter(function (l) { return l.trim(); }).map(function (line) {
+            var m = line.match(/^(Henry|Ahmed):\s*(.*)/);
+            if (!m) return '<p class="line"><span style="color:#aaa">' + line + '</span></p>';
+            var who = m[1].toLowerCase();
+            return '<p class="line ' + who + '"><span class="speaker">' + m[1] + ':</span><span style="color:#e2e8f0">' + m[2] + '</span></p>';
+          }).join('');
+        } else {
+          notesEl.innerHTML = '';
+        }
+      });
+
+      ws.addEventListener('close', function () {
+        conn.open = false;
+        log('Kobling lukket', true);
+        setConnected(false);
+        setTimeout(connectWS, 2000);
+      });
+
+      ws.addEventListener('error', function (err) {
+        log('WebSocket-feil', true);
         setConnected(false);
       });
     }
+
+    connectWS();
+
+    document.getElementById('btn-reset-stats').addEventListener('click', function () {
+      if (!confirm('Nullstille all statistikk?')) return;
+      conn.send({ action: 'reset-stats' });
+      this.textContent = '✓ Nullstilt';
+      setTimeout(() => { this.textContent = 'Nullstill statistikk'; }, 2000);
+    });
   </script>
 </body>
 </html>

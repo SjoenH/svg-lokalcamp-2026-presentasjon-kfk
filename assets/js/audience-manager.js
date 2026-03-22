@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  // Map of connId → { name, charId, position, conn, bubbleTimeout }
+  // Map of clientId → { name, charId, position, bubbleTimeout }
   var audienceMembers = {};
   var nextPosition = 0;
 
@@ -12,15 +12,15 @@
     sentences: {},   // sentenceId → count
     emotes: {},      // emoteId → count
     totalMoves: 0,
-    activity: {},    // connId → { name, charId, count }
+    activity: {},    // clientId → { name, charId, count }
   };
 
-  function trackActivity(connId) {
-    if (!stats.activity[connId]) {
-      var m = audienceMembers[connId];
-      stats.activity[connId] = { name: m ? m.name : '?', charId: m ? m.charId : '', count: 0 };
+  function trackActivity(clientId) {
+    if (!stats.activity[clientId]) {
+      var m = audienceMembers[clientId];
+      stats.activity[clientId] = { name: m ? m.name : '?', charId: m ? m.charId : '', count: 0 };
     }
-    stats.activity[connId].count++;
+    stats.activity[clientId].count++;
   }
 
   var wrap = document.getElementById('party-bar-wrap');
@@ -33,13 +33,13 @@
   }
 
   // ---- Build a .party-slot element ----
-  function buildSlot(connId, member) {
+  function buildSlot(clientId, member) {
     var char = (window.AUDIENCE_CHARACTERS || []).find(function (c) { return c.id === member.charId; });
     if (!char) return null;
 
     var slot = document.createElement('div');
     slot.className = 'party-slot';
-    slot.dataset.connId = connId;
+    slot.dataset.connId = clientId;
 
     var bubble = document.createElement('div');
     bubble.className = 'party-bubble';
@@ -72,37 +72,37 @@
 
     // Snapshot positions BEFORE reorder (only already-existing slots)
     var snapBefore = {};
-    sorted.forEach(function (connId) {
-      var el = wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]');
-      if (el) snapBefore[connId] = el.getBoundingClientRect().left;
+    sorted.forEach(function (clientId) {
+      var el = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
+      if (el) snapBefore[clientId] = el.getBoundingClientRect().left;
     });
 
     // Add missing slots
-    sorted.forEach(function (connId) {
-      if (!wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]')) {
-        var slot = buildSlot(connId, audienceMembers[connId]);
+    sorted.forEach(function (clientId) {
+      if (!wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]')) {
+        var slot = buildSlot(clientId, audienceMembers[clientId]);
         if (slot) wrap.appendChild(slot);
       }
     });
 
     // Reorder DOM to match sorted order
-    sorted.forEach(function (connId) {
-      var slot = wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]');
-      if (slot) wrap.appendChild(slot); // appendChild moves existing nodes
+    sorted.forEach(function (clientId) {
+      var slot = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
+      if (slot) wrap.appendChild(slot);
     });
 
     updateSlotWidths();
 
     // FLIP animation — slide slots that actually moved
-    sorted.forEach(function (connId) {
-      if (snapBefore[connId] === undefined) return; // new slot, no animation
-      var slot = wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]');
+    sorted.forEach(function (clientId) {
+      if (snapBefore[clientId] === undefined) return;
+      var slot = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
       if (!slot) return;
-      var delta = snapBefore[connId] - slot.getBoundingClientRect().left;
+      var delta = snapBefore[clientId] - slot.getBoundingClientRect().left;
       if (Math.abs(delta) < 1) return;
       slot.style.transition = 'none';
       slot.style.transform = 'translateX(' + delta + 'px)';
-      void slot.offsetWidth; // force reflow
+      void slot.offsetWidth;
       slot.style.transition = 'transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
       slot.style.transform = '';
       slot.addEventListener('transitionend', function cleanup() {
@@ -113,10 +113,10 @@
   }
 
   // ---- Speech bubble ----
-  function showBubble(connId, text) {
-    var member = audienceMembers[connId];
+  function showBubble(clientId, text) {
+    var member = audienceMembers[clientId];
     if (!member) return;
-    var slot = wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]');
+    var slot = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
     if (!slot) return;
     var bubble = slot.querySelector('.party-bubble');
     if (!bubble) return;
@@ -124,7 +124,6 @@
     if (member.bubbleTimeout) {
       clearTimeout(member.bubbleTimeout);
       bubble.classList.remove('visible');
-      // Brief pause to allow CSS transition to reset
       setTimeout(function () { showBubbleNow(bubble, text, member); }, 50);
     } else {
       showBubbleNow(bubble, text, member);
@@ -141,14 +140,13 @@
   }
 
   // ---- Floating emote ----
-  function showEmote(connId, emoji) {
-    var slot = wrap.querySelector('.party-slot[data-conn-id="' + connId + '"]');
+  function showEmote(clientId, emoji) {
+    var slot = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
     if (!slot) return;
     var rect = slot.getBoundingClientRect();
     var el = document.createElement('div');
     el.className = 'floating-emote';
     el.textContent = emoji;
-    // Position fixed on body so it escapes overflow:hidden on party-bar-wrap
     el.style.position = 'fixed';
     el.style.left = Math.round(rect.left + rect.width * (0.15 + Math.random() * 0.7)) + 'px';
     el.style.top = Math.round(rect.top) + 'px';
@@ -157,14 +155,14 @@
   }
 
   // ---- Move character left/right ----
-  function moveChar(connId, direction) {
-    var member = audienceMembers[connId];
+  function moveChar(clientId, direction) {
+    var member = audienceMembers[clientId];
     if (!member) return;
 
     var sorted = Object.keys(audienceMembers).sort(function (a, b) {
       return audienceMembers[a].position - audienceMembers[b].position;
     });
-    var idx = sorted.indexOf(connId);
+    var idx = sorted.indexOf(clientId);
 
     var swapId, tmp;
     if (direction === 'left' && idx > 0) {
@@ -182,72 +180,87 @@
     }
   }
 
-  // ---- Handle a new audience connection ----
-  function handleConnection(conn) {
-    conn.on('data', function (data) {
-      if (!data || !data.type) return;
+  function wsSend(data) {
+    if (window.presenterWS && window.presenterWS.readyState === WebSocket.OPEN) {
+      window.presenterWS.send(JSON.stringify(data));
+    }
+  }
 
-      if (data.type === 'audience-join') {
-        var name = String(data.name || 'Anonym').trim().slice(0, 16) || 'Anonym';
-        var charId = String(data.charId || '');
-        var validChar = (window.AUDIENCE_CHARACTERS || []).some(function (c) { return c.id === charId; });
-        if (!validChar) return;
+  function broadcastAudienceUpdate() {
+    var total = Object.keys(audienceMembers).length;
+    wsSend({ type: 'audience-update', totalMembers: total });
+  }
 
-        audienceMembers[conn.peer] = {
-          name: name,
-          charId: charId,
-          position: nextPosition++,
-          conn: conn,
-          bubbleTimeout: null,
-        };
+  // ---- Handle incoming WebSocket messages from server ----
+  function handleMessage(data) {
+    if (!data || !data.type) return;
 
-        stats.totalJoins++;
-        stats.activity[conn.peer] = { name: name, charId: charId, count: 0 };
-        var currentCount = Object.keys(audienceMembers).length;
-        if (currentCount > stats.peakCount) stats.peakCount = currentCount;
+    if (data.type === 'stats-restore') {
+      var s = data.stats;
+      if (!s) return;
+      stats.peakCount   = s.peakCount   || 0;
+      stats.totalJoins  = s.totalJoins  || 0;
+      stats.totalMoves  = s.totalMoves  || 0;
+      stats.sentences   = s.sentences   || {};
+      stats.emotes      = s.emotes      || {};
+      stats.activity    = s.activity    || {};
+      return;
+    }
 
-        renderPartyBar();
+    if (data.type === 'audience-join') {
+      var clientId = data.clientId;
+      var name = String(data.name || 'Anonym').trim().slice(0, 16) || 'Anonym';
+      var charId = String(data.charId || '');
+      var validChar = (window.AUDIENCE_CHARACTERS || []).some(function (c) { return c.id === charId; });
+      if (!validChar) return;
 
-        if (conn.open) {
-          conn.send({ type: 'audience-ack', totalMembers: Object.keys(audienceMembers).length });
-        }
+      audienceMembers[clientId] = {
+        name: name,
+        charId: charId,
+        position: nextPosition++,
+        bubbleTimeout: null,
+      };
 
-        // Broadcast updated count to all audience members
-        broadcastAudienceUpdate();
+      stats.totalJoins++;
+      stats.activity[clientId] = { name: name, charId: charId, count: 0 };
+      var currentCount = Object.keys(audienceMembers).length;
+      if (currentCount > stats.peakCount) stats.peakCount = currentCount;
 
-      } else if (data.type === 'audience-speak') {
-        var sentenceId = String(data.sentenceId || '');
-        var sentence = (window.AUDIENCE_SENTENCES || []).find(function (s) { return s.id === sentenceId; });
-        if (sentence) {
-          showBubble(conn.peer, sentence.text);
-          stats.sentences[sentenceId] = (stats.sentences[sentenceId] || 0) + 1;
-          trackActivity(conn.peer);
-        }
+      renderPartyBar();
+      wsSend({ type: 'audience-ack', clientId: clientId, totalMembers: currentCount });
+      broadcastAudienceUpdate();
 
-      } else if (data.type === 'audience-emote') {
-        var emoteId = String(data.emoteId || '');
-        var emote = (window.AUDIENCE_EMOTES || []).find(function (e) { return e.id === emoteId; });
-        if (emote) {
-          showEmote(conn.peer, emote.emoji);
-          stats.emotes[emoteId] = (stats.emotes[emoteId] || 0) + 1;
-          trackActivity(conn.peer);
-        }
-
-      } else if (data.type === 'audience-move') {
-        moveChar(conn.peer, data.direction === 'right' ? 'right' : 'left');
-        stats.totalMoves++;
-        trackActivity(conn.peer);
+    } else if (data.type === 'audience-speak') {
+      var sentenceId = String(data.sentenceId || '');
+      var sentence = (window.AUDIENCE_SENTENCES || []).find(function (s) { return s.id === sentenceId; });
+      if (sentence) {
+        showBubble(data.clientId, sentence.text);
+        stats.sentences[sentenceId] = (stats.sentences[sentenceId] || 0) + 1;
+        trackActivity(data.clientId);
       }
-    });
 
-    conn.on('close', function () {
-      var member = audienceMembers[conn.peer];
+    } else if (data.type === 'audience-emote') {
+      var emoteId = String(data.emoteId || '');
+      var emote = (window.AUDIENCE_EMOTES || []).find(function (e) { return e.id === emoteId; });
+      if (emote) {
+        showEmote(data.clientId, emote.emoji);
+        stats.emotes[emoteId] = (stats.emotes[emoteId] || 0) + 1;
+        trackActivity(data.clientId);
+      }
+
+    } else if (data.type === 'audience-move') {
+      moveChar(data.clientId, data.direction === 'right' ? 'right' : 'left');
+      stats.totalMoves++;
+      trackActivity(data.clientId);
+
+    } else if (data.type === 'audience-disconnect') {
+      var clientId = data.clientId;
+      var member = audienceMembers[clientId];
       if (!member) return;
       if (member.bubbleTimeout) clearTimeout(member.bubbleTimeout);
 
-      // Walk off screen before removing
-      var slot = wrap.querySelector('.party-slot[data-conn-id="' + conn.peer + '"]');
-      delete audienceMembers[conn.peer];
+      var slot = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
+      delete audienceMembers[clientId];
       broadcastAudienceUpdate();
 
       if (slot) {
@@ -259,21 +272,11 @@
       } else {
         renderPartyBar();
       }
-    });
-  }
-
-  function broadcastAudienceUpdate() {
-    var total = Object.keys(audienceMembers).length;
-    Object.values(audienceMembers).forEach(function (m) {
-      if (m.conn && m.conn.open) {
-        m.conn.send({ type: 'audience-update', totalMembers: total });
-      }
-    });
+    }
   }
 
   // ---- QR code for the join slide + persistent corner QR ----
   function setupQR() {
-    // Skip in preview iframe (remote.html embeds index.html?preview=1)
     var isPreview = new URLSearchParams(location.search).has('preview');
 
     var AUDIENCE_URL = new URL('audience.html', location.href).href;
@@ -309,11 +312,13 @@
     }
   }
 
-  // ---- Init: wait for presenterPeer to be exposed by remote-control.js ----
+  // ---- Init: wait for presenterWS to be exposed by remote-control.js ----
   function init() {
-    if (window.presenterPeer) {
-      window.presenterPeer.on('connection', function (conn) {
-        if (conn.label === 'audience') handleConnection(conn);
+    if (window.presenterWS) {
+      window.presenterWS.addEventListener('message', function (e) {
+        var data;
+        try { data = JSON.parse(e.data); } catch { return; }
+        handleMessage(data);
       });
     } else {
       setTimeout(init, 100);
@@ -322,7 +327,6 @@
 
   document.addEventListener('DOMContentLoaded', setupQR);
 
-  // Wait for Reveal + remote-control.js to initialize
   function start() {
     if (window.Reveal && Reveal.isReady()) init();
     else if (window.Reveal) Reveal.addEventListener('ready', init);
@@ -330,7 +334,7 @@
   }
   start();
 
-  window.AudienceManager = { handleConnection: handleConnection };
+  window.AudienceManager = { handleMessage: handleMessage };
   window.AudienceStats = stats;
 
   // ---- Stats slide live rendering ----
@@ -386,11 +390,14 @@
 
   var statsInterval = null;
 
+  function isStatsSlide(slide) {
+    return slide && slide.id === 'slide-audience-stats';
+  }
+
   function initStatsSlide() {
     if (window.Reveal) {
       Reveal.addEventListener('slidechanged', function (e) {
-        var section = document.getElementById('slide-audience-stats');
-        if (e.currentSlide === section) {
+        if (isStatsSlide(e.currentSlide)) {
           populateStatsSlide();
           if (!statsInterval) statsInterval = setInterval(populateStatsSlide, 1000);
         } else {
@@ -398,10 +405,13 @@
           statsInterval = null;
         }
       });
+      if (isStatsSlide(Reveal.getCurrentSlide())) {
+        populateStatsSlide();
+        if (!statsInterval) statsInterval = setInterval(populateStatsSlide, 1000);
+      }
     }
   }
 
-  // Run after Reveal is ready
   function startStats() {
     if (window.Reveal && Reveal.isReady()) initStatsSlide();
     else if (window.Reveal) Reveal.addEventListener('ready', initStatsSlide);
