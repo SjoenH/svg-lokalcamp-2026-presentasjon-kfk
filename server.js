@@ -141,7 +141,7 @@ wss.on('connection', (ws) => {
       client.name = String(data.name || '').trim().slice(0, 16) || 'Anonym';
       client.charId = String(data.charId || '');
       client.x = Math.floor(20 + Math.random() * 60);
-      client.y = 5;
+      client.y = 3;
       insertEvent.run(sessionId, clientId, client.name, client.charId, 'join', null, Date.now());
       send(presenterWs, { type: 'audience-join', clientId, name: client.name, charId: client.charId, x: client.x, y: client.y });
       return;
@@ -164,8 +164,8 @@ wss.on('connection', (ws) => {
       const dir = String(data.direction || '');
       if (dir === 'left')  client.x = Math.max(2,  client.x - 1);
       if (dir === 'right') client.x = Math.min(98, client.x + 1);
-      if (dir === 'up')    client.y = Math.min(90, client.y + 1);
-      if (dir === 'down')  client.y = Math.max(2,  client.y - 1);
+      if (dir === 'up')    client.y = Math.min(6,  client.y + 1);
+      if (dir === 'down')  client.y = Math.max(1,  client.y - 1);
       const now = Date.now();
       if (now - client.lastMoveInsert > 1000) {
         insertEvent.run(sessionId, clientId, client.name, client.charId, 'move', dir, now);

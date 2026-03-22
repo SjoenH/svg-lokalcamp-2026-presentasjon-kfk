@@ -79,35 +79,39 @@
 
     if (member.bubbleTimeout) {
       clearTimeout(member.bubbleTimeout);
-      bubble.classList.remove('visible');
-      setTimeout(function () { showBubbleNow(bubble, text, member); }, 50);
+      bubble.classList.remove('visible', 'is-emoji');
+      setTimeout(function () { showBubbleNow(bubble, text, member, false); }, 50);
     } else {
-      showBubbleNow(bubble, text, member);
+      showBubbleNow(bubble, text, member, false);
     }
   }
 
-  function showBubbleNow(bubble, text, member) {
+  function showBubbleNow(bubble, text, member, isEmoji) {
     bubble.textContent = text;
+    bubble.classList.toggle('is-emoji', !!isEmoji);
     bubble.classList.add('visible');
     member.bubbleTimeout = setTimeout(function () {
-      bubble.classList.remove('visible');
+      bubble.classList.remove('visible', 'is-emoji');
       member.bubbleTimeout = null;
     }, 3000);
   }
 
-  // ---- Floating emote ----
+  // ---- Emote as bubble ----
   function showEmote(clientId, emoji) {
+    var member = audienceMembers[clientId];
+    if (!member) return;
     var slot = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
     if (!slot) return;
-    var rect = slot.getBoundingClientRect();
-    var el = document.createElement('div');
-    el.className = 'floating-emote';
-    el.textContent = emoji;
-    el.style.position = 'fixed';
-    el.style.left = Math.round(rect.left + rect.width * (0.15 + Math.random() * 0.7)) + 'px';
-    el.style.top = Math.round(rect.top) + 'px';
-    document.body.appendChild(el);
-    el.addEventListener('animationend', function () { el.remove(); });
+    var bubble = slot.querySelector('.party-bubble');
+    if (!bubble) return;
+
+    if (member.bubbleTimeout) {
+      clearTimeout(member.bubbleTimeout);
+      bubble.classList.remove('visible', 'is-emoji');
+      setTimeout(function () { showBubbleNow(bubble, emoji, member, true); }, 50);
+    } else {
+      showBubbleNow(bubble, emoji, member, true);
+    }
   }
 
   function wsSend(data) {
