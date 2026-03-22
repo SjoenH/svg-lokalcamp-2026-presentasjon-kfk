@@ -8,6 +8,11 @@
   height: calc(100dvh - 70px) !important;
 }
 
+/* On first/last slide: characters roam freely, Reveal takes full viewport */
+body.audience-free-mode .reveal {
+  height: 100dvh !important;
+}
+
 #audience-overlay {
   position: fixed;
   inset: 0;

@@ -75,7 +75,7 @@
 
       // Audience messages → route to AudienceManager
       if (data.type === 'audience-join' || data.type === 'audience-speak' ||
-          data.type === 'audience-emote' || data.type === 'audience-move' ||
+          data.type === 'audience-emote' || data.type === 'audience-position' ||
           data.type === 'audience-disconnect' || data.type === 'stats-restore') {
         if (window.AudienceManager) window.AudienceManager.handleMessage(data);
         return;
@@ -145,9 +145,19 @@
     wsSend({ type: 'timer-duration', total: timerTotal });
   }
 
+  function updateSlideMode() {
+    var idx = Reveal.getIndices();
+    var total = Reveal.getTotalSlides();
+    var isFree = idx.h === 0 || idx.h === total - 1;
+    wsSend({ type: 'slide-context', mode: isFree ? 'free' : 'strip' });
+    document.body.classList.toggle('audience-free-mode', isFree);
+  }
+
   function setupRevealListeners() {
+    updateSlideMode();
     Reveal.addEventListener('slidechanged', function (e) {
       wsSend(getState());
+      updateSlideMode();
       if (e.indexh === 0) {
         timerStartedAt = null;
         wsSend({ type: 'timer-stop' });

@@ -259,6 +259,90 @@
     return keys.reduce(function (a, b) { return obj[a] >= obj[b] ? a : b; });
   }
 
+  function makeSpriteEl(charId, cssClass, marginBottom) {
+    var char = (window.AUDIENCE_CHARACTERS || []).find(function (c) { return c.id === charId; });
+    if (!char) return null;
+    var el = document.createElement('div');
+    el.className = cssClass + ' anim-' + (char.anim || 'walk');
+    el.style.boxShadow = char.shadow;
+    el.style.marginBottom = marginBottom + 'px';
+    return el;
+  }
+
+  function renderPodium(ranked) {
+    var podium = document.getElementById('stat-podium');
+    if (!podium) return;
+    podium.innerHTML = '';
+    if (!ranked.length) return;
+
+    // Layout order: 2nd, 1st, 3rd
+    var slots = [
+      { rank: 2, cssClass: 'podium-2nd', label: '🥈' },
+      { rank: 1, cssClass: 'podium-1st', label: '🥇' },
+      { rank: 3, cssClass: 'podium-3rd', label: '🥉' },
+    ];
+
+    slots.forEach(function (slot) {
+      var entry = ranked[slot.rank - 1];
+      var slotEl = document.createElement('div');
+      slotEl.className = 'podium-slot ' + slot.cssClass;
+
+      if (entry) {
+        var spriteWrap = document.createElement('div');
+        spriteWrap.className = 'podium-sprite-wrap';
+        var sprite = makeSpriteEl(entry.charId, 'podium-sprite', 13);
+        if (sprite) spriteWrap.appendChild(sprite);
+        slotEl.appendChild(spriteWrap);
+
+        var nameEl = document.createElement('div');
+        nameEl.className = 'podium-name';
+        nameEl.textContent = entry.name;
+        slotEl.appendChild(nameEl);
+
+        var countEl = document.createElement('div');
+        countEl.className = 'podium-count';
+        countEl.textContent = entry.count + ' int.';
+        slotEl.appendChild(countEl);
+      }
+
+      var block = document.createElement('div');
+      block.className = 'podium-block';
+      block.textContent = slot.label;
+      slotEl.appendChild(block);
+
+      podium.appendChild(slotEl);
+    });
+  }
+
+  function renderParticipantList(ranked) {
+    var list = document.getElementById('stat-participant-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    ranked.forEach(function (entry) {
+      var card = document.createElement('div');
+      card.className = 'plist-card';
+
+      var wrap = document.createElement('div');
+      wrap.className = 'plist-sprite-wrap';
+      var sprite = makeSpriteEl(entry.charId, 'plist-sprite', 7);
+      if (sprite) wrap.appendChild(sprite);
+      card.appendChild(wrap);
+
+      var nameEl = document.createElement('span');
+      nameEl.className = 'plist-name';
+      nameEl.textContent = entry.name;
+      card.appendChild(nameEl);
+
+      var countEl = document.createElement('span');
+      countEl.className = 'plist-count';
+      countEl.textContent = '· ' + entry.count;
+      card.appendChild(countEl);
+
+      list.appendChild(card);
+    });
+  }
+
   function populateStatsSlide() {
     var totalMessages = Object.values(stats.sentences).reduce(function (a, b) { return a + b; }, 0)
                       + Object.values(stats.emotes).reduce(function (a, b) { return a + b; }, 0);
@@ -290,17 +374,14 @@
       if (emoteCountEl) emoteCountEl.textContent = stats.emotes[topEmoteId] + '×';
     }
 
-    var activityCounts = {};
-    Object.keys(stats.activity).forEach(function (k) { activityCounts[k] = stats.activity[k].count; });
-    var mvpId = topEntry(activityCounts);
-    var mvpEl = document.querySelector('#stat-mvp .stat-highlight');
-    if (mvpEl) {
-      if (mvpId && stats.activity[mvpId] && stats.activity[mvpId].count > 0) {
-        mvpEl.textContent = stats.activity[mvpId].name + ' (' + stats.activity[mvpId].count + ' interaksjonar)';
-      } else {
-        mvpEl.textContent = 'ingen interaksjonar endå';
-      }
-    }
+    // Rank all participants by activity count
+    var ranked = Object.keys(stats.activity)
+      .map(function (k) { return stats.activity[k]; })
+      .filter(function (a) { return a.count > 0; })
+      .sort(function (a, b) { return b.count - a.count; });
+
+    renderPodium(ranked);
+    renderParticipantList(ranked);
   }
 
   var statsInterval = null;

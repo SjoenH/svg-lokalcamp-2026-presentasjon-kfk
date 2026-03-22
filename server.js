@@ -90,6 +90,7 @@ const wss = new WebSocketServer({ server, path: '/ws' });
 // clients: clientId → { ws, role, name, charId }
 const clients = new Map();
 let presenterWs = null;
+let slideMode = 'free'; // 'free' | 'strip'
 
 function send(ws, data) {
   if (ws && ws.readyState === ws.OPEN) ws.send(JSON.stringify(data));
@@ -160,12 +161,18 @@ wss.on('connection', (ws) => {
       return;
     }
 
+    if (data.type === 'slide-context') {
+      slideMode = data.mode === 'free' ? 'free' : 'strip';
+      return;
+    }
+
     if (data.type === 'audience-move') {
       const dir = String(data.direction || '');
+      const yMax = slideMode === 'free' ? 90 : 6;
       if (dir === 'left')  client.x = Math.max(2,  client.x - 1);
       if (dir === 'right') client.x = Math.min(98, client.x + 1);
-      if (dir === 'up')    client.y = Math.min(6,  client.y + 1);
-      if (dir === 'down')  client.y = Math.max(1,  client.y - 1);
+      if (dir === 'up')    client.y = Math.min(yMax, client.y + 1);
+      if (dir === 'down')  client.y = Math.max(1,   client.y - 1);
       const now = Date.now();
       if (now - client.lastMoveInsert > 1000) {
         insertEvent.run(sessionId, clientId, client.name, client.charId, 'move', dir, now);
