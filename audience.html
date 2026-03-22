@@ -286,11 +286,11 @@
 
     /* Emote buttons */
     #emote-grid {
-      display: flex;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
       width: 100%;
       margin-bottom: 20px;
-      justify-content: center;
     }
     .emote-btn {
       background: #1a1a2e;
@@ -298,9 +298,8 @@
       border-radius: 12px;
       font-size: 1.6rem;
       line-height: 1.5;
-      padding: 10px;
+      padding: 10px 4px;
       cursor: pointer;
-      flex: 1;
       text-align: center;
       -webkit-tap-highlight-color: transparent;
       overflow: visible;
@@ -311,13 +310,12 @@
       transform: scale(0.94);
     }
 
-    /* Move controls */
+    /* D-pad move controls */
     #move-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(3, 52px);
+      grid-template-rows: repeat(3, 52px);
+      gap: 6px;
       margin-bottom: 20px;
     }
     .move-btn {
@@ -330,16 +328,13 @@
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      touch-action: none;
     }
     .move-btn:active {
       background: #223355;
       border-color: #7dd3fc;
       transform: scale(0.92);
-    }
-    #move-label {
-      font-size: 0.72rem;
-      color: #666;
-      text-align: center;
     }
 
     /* Status dot */
@@ -411,10 +406,17 @@
     <div class="section-label">Emote</div>
     <div id="emote-grid"></div>
 
+    <div class="section-label">Flytt karakteren</div>
     <div id="move-controls">
-      <button class="move-btn" id="btn-left">←</button>
-      <div id="move-label">Flytt deg i rekka</div>
-      <button class="move-btn" id="btn-right">→</button>
+      <div></div>
+      <button class="move-btn" data-dir="up">↑</button>
+      <div></div>
+      <button class="move-btn" data-dir="left">←</button>
+      <div></div>
+      <button class="move-btn" data-dir="right">→</button>
+      <div></div>
+      <button class="move-btn" data-dir="down">↓</button>
+      <div></div>
     </div>
 
     <div id="conn-status">○ frakopla</div>
@@ -568,12 +570,29 @@
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // ---- Move buttons ----
-    document.getElementById('btn-left').addEventListener('click', function () {
-      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'audience-move', direction: 'left' }));
-    });
-    document.getElementById('btn-right').addEventListener('click', function () {
-      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'audience-move', direction: 'right' }));
+    // ---- D-pad move buttons ----
+    var moveInterval = null;
+
+    function sendMove(dir) {
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'audience-move', direction: dir }));
+    }
+
+    function startMove(dir) {
+      stopMove();
+      sendMove(dir);
+      moveInterval = setInterval(function () { sendMove(dir); }, 100);
+    }
+
+    function stopMove() {
+      if (moveInterval) { clearInterval(moveInterval); moveInterval = null; }
+    }
+
+    document.querySelectorAll('.move-btn').forEach(function (btn) {
+      var dir = btn.dataset.dir;
+      btn.addEventListener('pointerdown', function (e) { e.preventDefault(); startMove(dir); });
+      btn.addEventListener('pointerup', stopMove);
+      btn.addEventListener('pointerleave', stopMove);
+      btn.addEventListener('pointercancel', stopMove);
     });
 
     // ---- Reconnect/reselect ----

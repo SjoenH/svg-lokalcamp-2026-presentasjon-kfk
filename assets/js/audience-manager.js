@@ -1,9 +1,8 @@
 (function () {
   'use strict';
 
-  // Map of clientId → { name, charId, position, bubbleTimeout }
+  // Map of clientId → { name, charId, x, y, bubbleTimeout }
   var audienceMembers = {};
-  var nextPosition = 0;
 
   // ---- Stats tracking ----
   var stats = {
@@ -23,14 +22,7 @@
     stats.activity[clientId].count++;
   }
 
-  var wrap = document.getElementById('party-bar-wrap');
-
-  // ---- Slot width based on member count ----
-  function updateSlotWidths() {
-    var count = Object.keys(audienceMembers).length;
-    var w = count <= 15 ? 60 : count <= 25 ? 48 : 38;
-    wrap.style.setProperty('--party-slot-width', w + 'px');
-  }
+  var wrap = document.getElementById('audience-overlay');
 
   // ---- Build a .party-slot element ----
   function buildSlot(clientId, member) {
@@ -58,58 +50,22 @@
     return slot;
   }
 
-  // ---- Re-render the whole party bar ----
-  function renderPartyBar() {
-    // Sort members by position
-    var sorted = Object.keys(audienceMembers).sort(function (a, b) {
-      return audienceMembers[a].position - audienceMembers[b].position;
-    });
+  // ---- Position a slot based on member x,y ----
+  function positionSlot(clientId) {
+    var member = audienceMembers[clientId];
+    if (!member) return;
+    var slot = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
+    if (!slot) return;
+    slot.style.left = member.x + '%';
+    slot.style.bottom = member.y + '%';
+  }
 
-    // Remove slots that are no longer present
-    wrap.querySelectorAll('.party-slot').forEach(function (el) {
-      if (!audienceMembers[el.dataset.connId]) el.remove();
-    });
-
-    // Snapshot positions BEFORE reorder (only already-existing slots)
-    var snapBefore = {};
-    sorted.forEach(function (clientId) {
-      var el = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
-      if (el) snapBefore[clientId] = el.getBoundingClientRect().left;
-    });
-
-    // Add missing slots
-    sorted.forEach(function (clientId) {
-      if (!wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]')) {
-        var slot = buildSlot(clientId, audienceMembers[clientId]);
-        if (slot) wrap.appendChild(slot);
-      }
-    });
-
-    // Reorder DOM to match sorted order
-    sorted.forEach(function (clientId) {
-      var slot = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
-      if (slot) wrap.appendChild(slot);
-    });
-
-    updateSlotWidths();
-
-    // FLIP animation — slide slots that actually moved
-    sorted.forEach(function (clientId) {
-      if (snapBefore[clientId] === undefined) return;
-      var slot = wrap.querySelector('.party-slot[data-conn-id="' + clientId + '"]');
-      if (!slot) return;
-      var delta = snapBefore[clientId] - slot.getBoundingClientRect().left;
-      if (Math.abs(delta) < 1) return;
-      slot.style.transition = 'none';
-      slot.style.transform = 'translateX(' + delta + 'px)';
-      void slot.offsetWidth;
-      slot.style.transition = 'transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-      slot.style.transform = '';
-      slot.addEventListener('transitionend', function cleanup() {
-        slot.style.transition = '';
-        slot.removeEventListener('transitionend', cleanup);
-      });
-    });
+  // ---- Add a new slot to the overlay ----
+  function addSlot(clientId) {
+    var slot = buildSlot(clientId, audienceMembers[clientId]);
+    if (!slot) return;
+    wrap.appendChild(slot);
+    positionSlot(clientId);
   }
 
   // ---- Speech bubble ----
@@ -154,32 +110,6 @@
     el.addEventListener('animationend', function () { el.remove(); });
   }
 
-  // ---- Move character left/right ----
-  function moveChar(clientId, direction) {
-    var member = audienceMembers[clientId];
-    if (!member) return;
-
-    var sorted = Object.keys(audienceMembers).sort(function (a, b) {
-      return audienceMembers[a].position - audienceMembers[b].position;
-    });
-    var idx = sorted.indexOf(clientId);
-
-    var swapId, tmp;
-    if (direction === 'left' && idx > 0) {
-      swapId = sorted[idx - 1];
-      tmp = audienceMembers[swapId].position;
-      audienceMembers[swapId].position = member.position;
-      member.position = tmp;
-      renderPartyBar();
-    } else if (direction === 'right' && idx < sorted.length - 1) {
-      swapId = sorted[idx + 1];
-      tmp = audienceMembers[swapId].position;
-      audienceMembers[swapId].position = member.position;
-      member.position = tmp;
-      renderPartyBar();
-    }
-  }
-
   function wsSend(data) {
     if (window.presenterWS && window.presenterWS.readyState === WebSocket.OPEN) {
       window.presenterWS.send(JSON.stringify(data));
@@ -217,7 +147,8 @@
       audienceMembers[clientId] = {
         name: name,
         charId: charId,
-        position: nextPosition++,
+        x: typeof data.x === 'number' ? data.x : 50,
+        y: typeof data.y === 'number' ? data.y : 5,
         bubbleTimeout: null,
       };
 
@@ -226,7 +157,7 @@
       var currentCount = Object.keys(audienceMembers).length;
       if (currentCount > stats.peakCount) stats.peakCount = currentCount;
 
-      renderPartyBar();
+      addSlot(clientId);
       wsSend({ type: 'audience-ack', clientId: clientId, totalMembers: currentCount });
       broadcastAudienceUpdate();
 
@@ -248,10 +179,15 @@
         trackActivity(data.clientId);
       }
 
-    } else if (data.type === 'audience-move') {
-      moveChar(data.clientId, data.direction === 'right' ? 'right' : 'left');
-      stats.totalMoves++;
-      trackActivity(data.clientId);
+    } else if (data.type === 'audience-position') {
+      var member = audienceMembers[data.clientId];
+      if (member) {
+        member.x = data.x;
+        member.y = data.y;
+        positionSlot(data.clientId);
+        stats.totalMoves++;
+        trackActivity(data.clientId);
+      }
 
     } else if (data.type === 'audience-disconnect') {
       var clientId = data.clientId;
@@ -265,12 +201,7 @@
 
       if (slot) {
         slot.classList.add('party-slot-exit');
-        slot.addEventListener('animationend', function () {
-          slot.remove();
-          renderPartyBar();
-        }, { once: true });
-      } else {
-        renderPartyBar();
+        slot.addEventListener('animationend', function () { slot.remove(); }, { once: true });
       }
     }
   }
