@@ -18,8 +18,8 @@ const TEXT_FLEE_RADIUS  = 60;
 const TEXT_FLEE_FORCE   = 0.3;
 const MOUSE_FLEE_RADIUS = 100;
 const MOUSE_FLEE_FORCE  = 0.4;
-const CHAR_FLEE_RADIUS  = 80;
-const CHAR_FLEE_FORCE   = 0.35;
+const CHAR_FLEE_RADIUS  = 130;
+const CHAR_FLEE_FORCE   = 1.2;
 const MAX_FORCE      = 0.06;
 const EAGLE_TURN     = 0.03;  // how sharply falcons steer toward nearest boid
 const COLOR          = '#450d21';
@@ -135,17 +135,6 @@ function loop() {
       }
     }
 
-    // avoid characters
-    for (const cp of charPositions) {
-      const dx = b.x - cp.x, dy = b.y - cp.y;
-      const d = Math.hypot(dx, dy);
-      if (d < CHAR_FLEE_RADIUS && d > 0) {
-        const strength = (1 - d / CHAR_FLEE_RADIUS) * CHAR_FLEE_FORCE;
-        ax += (dx / d) * strength;
-        ay += (dy / d) * strength;
-      }
-    }
-
     // avoid text regions — push away from nearest point on each rect
     for (const r of textRects) {
       const nx = Math.max(r.left, Math.min(b.x, r.right));
@@ -174,6 +163,17 @@ function loop() {
     clamp(acc, MAX_FORCE);
     b.vx += acc.x;
     b.vy += acc.y;
+
+    // avoid characters — applied after force budget so it is never diluted by MAX_FORCE
+    for (const cp of charPositions) {
+      const dx = b.x - cp.x, dy = b.y - cp.y;
+      const d = Math.hypot(dx, dy);
+      if (d < CHAR_FLEE_RADIUS && d > 0) {
+        const strength = (1 - d / CHAR_FLEE_RADIUS) * CHAR_FLEE_FORCE;
+        b.vx += (dx / d) * strength;
+        b.vy += (dy / d) * strength;
+      }
+    }
 
     const spd = Math.hypot(b.vx, b.vy) || 1;
     b.vx = b.vx / spd * SPEED;

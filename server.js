@@ -110,7 +110,7 @@ function remoteClients() {
 }
 
 wss.on('connection', (ws) => {
-  const clientId = randomUUID();
+  let clientId = randomUUID();
   clients.set(clientId, { ws, role: null, name: null, charId: null, x: null, y: null, lastMoveInsert: 0 });
   send(ws, { type: 'connected', clientId });
 
@@ -138,6 +138,13 @@ wss.on('connection', (ws) => {
 
     // ---- Audience joining ----
     if (data.type === 'audience-join') {
+      // Gjenbruk gammal clientId om klienten sender ein (refresh-støtte)
+      const resumeId = String(data.resumeClientId || '').trim();
+      if (resumeId && resumeId !== clientId && !clients.has(resumeId)) {
+        clients.set(resumeId, clients.get(clientId));
+        clients.delete(clientId);
+        clientId = resumeId;
+      }
       client.role = 'audience';
       client.name = String(data.name || '').trim().slice(0, 16) || 'Anonym';
       client.charId = String(data.charId || '');
@@ -162,7 +169,18 @@ wss.on('connection', (ws) => {
     }
 
     if (data.type === 'slide-context') {
-      slideMode = data.mode === 'free' ? 'free' : 'strip';
+      const newMode = data.mode === 'free' ? 'free' : 'strip';
+      if (newMode !== slideMode) {
+        slideMode = newMode;
+        if (slideMode === 'strip') {
+          for (const [cid, c] of clients) {
+            if (c.role === 'audience' && c.y > 6) {
+              c.y = 6;
+              send(presenterWs, { type: 'audience-position', clientId: cid, x: c.x, y: c.y });
+            }
+          }
+        }
+      }
       return;
     }
 

@@ -443,7 +443,7 @@
 
     // ---- Restore session ----
     var saved = {};
-    try { saved = JSON.parse(sessionStorage.getItem('audience-session') || '{}'); } catch (e) {}
+    try { saved = JSON.parse(localStorage.getItem('audience-session') || '{}'); } catch (e) {}
 
     // ---- Build character grid ----
     var grid = document.getElementById('char-grid');
@@ -547,7 +547,7 @@
     document.getElementById('btn-join').addEventListener('click', function () {
       myName = nameInput.value.trim().slice(0, 16);
       if (!selectedCharId || !myName) return;
-      sessionStorage.setItem('audience-session', JSON.stringify({ charId: selectedCharId, name: myName }));
+      localStorage.setItem('audience-session', JSON.stringify({ charId: selectedCharId, name: myName }));
       connect();
     });
 
@@ -630,7 +630,8 @@
       ws = new WebSocket(wsUrl());
 
       ws.addEventListener('open', function () {
-        ws.send(JSON.stringify({ type: 'audience-join', name: myName, charId: selectedCharId }));
+        var resumeClientId = saved.clientId || undefined;
+        ws.send(JSON.stringify({ type: 'audience-join', name: myName, charId: selectedCharId, resumeClientId: resumeClientId }));
         setupMainView();
         showView('view-main');
         setStatus('', true);
@@ -639,6 +640,10 @@
       ws.addEventListener('message', function (e) {
         var data;
         try { data = JSON.parse(e.data); } catch { return; }
+        if (data && data.type === 'connected') {
+          saved.clientId = data.clientId;
+          localStorage.setItem('audience-session', JSON.stringify(saved));
+        }
         if (data && data.type === 'audience-update') {
           // could show member count if desired
         }
