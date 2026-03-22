@@ -185,3 +185,13 @@ body.audience-free-mode .reveal {
   transition: none;
 }
 
+/* ---- Push shove animation ---- */
+@keyframes partyPushed {
+  0%,100% { transform: translateX(-50%); }
+  20%     { transform: translateX(calc(-50% + 8px)); }
+  60%     { transform: translateX(calc(-50% - 5px)); }
+}
+.party-slot-pushed {
+  animation: partyPushed 0.4s ease-out forwards;
+}
+
