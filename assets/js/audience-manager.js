@@ -247,27 +247,7 @@
     }
   }
 
-  // ---- Init: wait for presenterWS to be exposed by remote-control.js ----
-  function init() {
-    if (window.presenterWS) {
-      window.presenterWS.addEventListener('message', function (e) {
-        var data;
-        try { data = JSON.parse(e.data); } catch { return; }
-        handleMessage(data);
-      });
-    } else {
-      setTimeout(init, 100);
-    }
-  }
-
   document.addEventListener('DOMContentLoaded', setupQR);
-
-  function start() {
-    if (window.Reveal && Reveal.isReady()) init();
-    else if (window.Reveal) Reveal.addEventListener('ready', init);
-    else setTimeout(start, 200);
-  }
-  start();
 
   window.AudienceManager = { handleMessage: handleMessage };
   window.AudienceStats = stats;
