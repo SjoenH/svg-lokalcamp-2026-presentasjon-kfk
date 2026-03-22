@@ -595,17 +595,30 @@
       sentenceGrid.appendChild(btn);
     });
 
-    // ---- Build emote buttons ----
-    var emoteGrid = document.getElementById('emote-grid');
-    (window.AUDIENCE_EMOTES || []).forEach(function (e) {
-      var btn = document.createElement('button');
-      btn.className = 'emote-btn';
-      btn.textContent = e.emoji;
-      btn.title = e.id;
-      btn.addEventListener('click', function () {
-        if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'audience-emote', emoteId: e.id }));
-      });
-      emoteGrid.appendChild(btn);
+    // ---- Build radial wheel items + emote preview ----
+    var WHEEL_EMOTES = window.AUDIENCE_EMOTES || [];
+    var WHEEL_SLOTS = 6;
+    var WHEEL_RADIUS = 56;
+    var WHEEL_VISUAL_R = 80;
+    var wheelOverlay = document.getElementById('emote-wheel-overlay');
+    var wheelBg = document.getElementById('emote-wheel-bg');
+    var wheelItems = [];
+
+    for (var wi = 0; wi < WHEEL_SLOTS; wi++) {
+      var wAngle = (wi * 60 - 90) * Math.PI / 180;
+      var wItem = document.createElement('div');
+      wItem.className = 'emote-wheel-item' + (wi >= WHEEL_EMOTES.length ? ' empty' : '');
+      if (wi < WHEEL_EMOTES.length) wItem.textContent = WHEEL_EMOTES[wi].emoji;
+      wheelItems.push({ el: wItem, angle: wAngle, emote: WHEEL_EMOTES[wi] || null });
+      wheelOverlay.appendChild(wItem);
+    }
+
+    var emotePreviewRow = document.getElementById('emote-preview');
+    WHEEL_EMOTES.slice(0, 4).forEach(function (e) {
+      var dot = document.createElement('span');
+      dot.className = 'emote-preview-dot';
+      dot.textContent = e.emoji;
+      emotePreviewRow.appendChild(dot);
     });
 
     // ---- Name input ----
@@ -664,29 +677,200 @@
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // ---- D-pad move buttons ----
-    var moveInterval = null;
+    // ---- Virtual joystick ----
+    var facingDir = 'right';
+    var joystickActive = false;
+    var joystickOriginX = 0, joystickOriginY = 0;
+    var joystickMoveInterval = null;
+    var joystickDir = null;
+    var joystickBase = document.getElementById('joystick-base');
+    var joystickKnob = document.getElementById('joystick-knob');
+    var JOYSTICK_RADIUS = 40;
+    var JOYSTICK_DEADZONE = 12;
 
-    function sendMove(dir) {
-      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'audience-move', direction: dir }));
+    function joystickSendMove() {
+      if (joystickDir && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'audience-move', direction: joystickDir }));
+        if (joystickDir === 'left') facingDir = 'left';
+        if (joystickDir === 'right') facingDir = 'right';
+      }
     }
 
-    function startMove(dir) {
-      stopMove();
-      sendMove(dir);
-      moveInterval = setInterval(function () { sendMove(dir); }, 100);
+    function joystickStop() {
+      joystickActive = false;
+      joystickDir = null;
+      if (joystickMoveInterval) { clearInterval(joystickMoveInterval); joystickMoveInterval = null; }
+      joystickKnob.classList.add('returning');
+      joystickKnob.style.transform = 'translate(-50%, -50%)';
+      setTimeout(function () { joystickKnob.classList.remove('returning'); }, 220);
     }
 
-    function stopMove() {
-      if (moveInterval) { clearInterval(moveInterval); moveInterval = null; }
+    joystickBase.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      joystickBase.setPointerCapture(e.pointerId);
+      var rect = joystickBase.getBoundingClientRect();
+      joystickOriginX = rect.left + rect.width / 2;
+      joystickOriginY = rect.top + rect.height / 2;
+      joystickActive = true;
+      joystickKnob.classList.remove('returning');
+    });
+
+    joystickBase.addEventListener('pointermove', function (e) {
+      if (!joystickActive) return;
+      var dx = e.clientX - joystickOriginX;
+      var dy = e.clientY - joystickOriginY;
+      var dist = Math.hypot(dx, dy);
+
+      var clampedX = dx, clampedY = dy;
+      if (dist > JOYSTICK_RADIUS) {
+        clampedX = (dx / dist) * JOYSTICK_RADIUS;
+        clampedY = (dy / dist) * JOYSTICK_RADIUS;
+      }
+      joystickKnob.style.transform = 'translate(calc(-50% + ' + clampedX + 'px), calc(-50% + ' + clampedY + 'px))';
+
+      if (dist < JOYSTICK_DEADZONE) {
+        joystickDir = null;
+        if (joystickMoveInterval) { clearInterval(joystickMoveInterval); joystickMoveInterval = null; }
+        return;
+      }
+
+      var newDir;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        newDir = dx > 0 ? 'right' : 'left';
+      } else {
+        newDir = dy > 0 ? 'down' : 'up';
+      }
+
+      if (newDir !== joystickDir) {
+        joystickDir = newDir;
+        if (joystickMoveInterval) { clearInterval(joystickMoveInterval); joystickMoveInterval = null; }
+        joystickSendMove();
+        joystickMoveInterval = setInterval(joystickSendMove, 100);
+      }
+    });
+
+    joystickBase.addEventListener('pointerup', function () { joystickStop(); });
+    joystickBase.addEventListener('pointercancel', function () { joystickStop(); });
+
+    // ---- DYTT! push button ----
+    var btnPush = document.getElementById('btn-push');
+
+    btnPush.addEventListener('click', function () {
+      if (btnPush.classList.contains('cooldown')) return;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'audience-push', facingDir: facingDir }));
+      }
+      btnPush.classList.add('cooldown');
+      setTimeout(function () { btnPush.classList.remove('cooldown'); }, 1500);
+    });
+
+    // ---- Radial wheel logic ----
+    var btnEmote = document.getElementById('btn-emote');
+    var wheelOpen = false;
+    var wheelCx = 0, wheelCy = 0;
+    var wheelHoldTimer = null;
+    var wheelPointerId = null;
+    var wheelStartX = 0, wheelStartY = 0;
+    var highlightedIdx = -1;
+    var WHEEL_HOLD_MS = 200;
+    var WHEEL_CANCEL_DIST = 8;
+    var WHEEL_DEADZONE = 20;
+
+    function openWheel(cx, cy) {
+      wheelOpen = true;
+      var vw = window.innerWidth, vh = window.innerHeight;
+      wheelCx = Math.min(Math.max(cx, WHEEL_VISUAL_R), vw - WHEEL_VISUAL_R);
+      wheelCy = Math.min(Math.max(cy, WHEEL_VISUAL_R), vh - WHEEL_VISUAL_R);
+      wheelBg.style.left = wheelCx + 'px';
+      wheelBg.style.top  = wheelCy + 'px';
+      wheelItems.forEach(function (item) {
+        var ix = wheelCx + Math.cos(item.angle) * WHEEL_RADIUS;
+        var iy = wheelCy + Math.sin(item.angle) * WHEEL_RADIUS;
+        item.el.style.left = ix + 'px';
+        item.el.style.top  = iy + 'px';
+        item.el.classList.remove('highlighted');
+      });
+      wheelOverlay.classList.add('open');
     }
 
-    document.querySelectorAll('.move-btn').forEach(function (btn) {
-      var dir = btn.dataset.dir;
-      btn.addEventListener('pointerdown', function (e) { e.preventDefault(); startMove(dir); });
-      btn.addEventListener('pointerup', stopMove);
-      btn.addEventListener('pointerleave', stopMove);
-      btn.addEventListener('pointercancel', stopMove);
+    function closeWheel() {
+      wheelOpen = false;
+      highlightedIdx = -1;
+      wheelOverlay.classList.remove('open');
+      wheelItems.forEach(function (item) { item.el.classList.remove('highlighted'); });
+    }
+
+    function updateWheelHighlight(px, py) {
+      var dx = px - wheelCx, dy = py - wheelCy;
+      var dist = Math.hypot(dx, dy);
+      if (dist < WHEEL_DEADZONE) {
+        if (highlightedIdx !== -1) {
+          wheelItems[highlightedIdx].el.classList.remove('highlighted');
+          highlightedIdx = -1;
+        }
+        return;
+      }
+      var angle = Math.atan2(dy, dx);
+      var best = -1, bestDiff = Infinity;
+      wheelItems.forEach(function (item, i) {
+        if (!item.emote) return;
+        var diff = Math.abs(((angle - item.angle) + Math.PI * 3) % (Math.PI * 2) - Math.PI);
+        if (diff < bestDiff) { bestDiff = diff; best = i; }
+      });
+      if (best !== highlightedIdx) {
+        if (highlightedIdx !== -1) wheelItems[highlightedIdx].el.classList.remove('highlighted');
+        highlightedIdx = best;
+        if (best !== -1) wheelItems[best].el.classList.add('highlighted');
+      }
+    }
+
+    btnEmote.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      btnEmote.setPointerCapture(e.pointerId);
+      wheelPointerId = e.pointerId;
+      wheelStartX = e.clientX;
+      wheelStartY = e.clientY;
+      wheelHoldTimer = setTimeout(function () {
+        btnEmote.releasePointerCapture(wheelPointerId);
+        openWheel(wheelStartX, wheelStartY);
+        wheelOverlay.setPointerCapture(wheelPointerId);
+      }, WHEEL_HOLD_MS);
+    });
+
+    btnEmote.addEventListener('pointermove', function (e) {
+      if (!wheelHoldTimer) return;
+      if (Math.hypot(e.clientX - wheelStartX, e.clientY - wheelStartY) > WHEEL_CANCEL_DIST) {
+        clearTimeout(wheelHoldTimer);
+        wheelHoldTimer = null;
+      }
+    });
+
+    btnEmote.addEventListener('pointerup', function () {
+      if (wheelHoldTimer) { clearTimeout(wheelHoldTimer); wheelHoldTimer = null; }
+    });
+
+    btnEmote.addEventListener('pointercancel', function () {
+      if (wheelHoldTimer) { clearTimeout(wheelHoldTimer); wheelHoldTimer = null; }
+    });
+
+    wheelOverlay.addEventListener('pointermove', function (e) {
+      if (!wheelOpen) return;
+      updateWheelHighlight(e.clientX, e.clientY);
+    });
+
+    wheelOverlay.addEventListener('pointerup', function () {
+      if (!wheelOpen) return;
+      if (highlightedIdx !== -1 && wheelItems[highlightedIdx].emote) {
+        var emoteId = wheelItems[highlightedIdx].emote.id;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'audience-emote', emoteId: emoteId }));
+        }
+      }
+      closeWheel();
+    });
+
+    wheelOverlay.addEventListener('pointercancel', function () {
+      closeWheel();
     });
 
     // ---- Reconnect/reselect ----
@@ -737,6 +921,14 @@
         }
         if (data && data.type === 'audience-update') {
           // could show member count if desired
+        }
+        if (data && data.type === 'audience-push-miss') {
+          btnPush.classList.remove('shake');
+          void btnPush.offsetWidth;
+          btnPush.classList.add('shake');
+          btnPush.addEventListener('animationend', function () {
+            btnPush.classList.remove('shake');
+          }, { once: true });
         }
       });
 
