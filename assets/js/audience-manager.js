@@ -193,6 +193,13 @@
         trackActivity(data.clientId);
       }
 
+    } else if (data.type === 'audience-push-hit') {
+      var targetSlot = wrap.querySelector('.party-slot[data-conn-id="' + data.clientId + '"]');
+      if (targetSlot) {
+        targetSlot.classList.add('party-slot-pushed');
+        setTimeout(function () { targetSlot.classList.remove('party-slot-pushed'); }, 400);
+      }
+
     } else if (data.type === 'audience-disconnect') {
       var clientId = data.clientId;
       var member = audienceMembers[clientId];

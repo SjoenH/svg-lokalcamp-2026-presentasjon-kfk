@@ -111,7 +111,7 @@ function remoteClients() {
 
 wss.on('connection', (ws) => {
   let clientId = randomUUID();
-  clients.set(clientId, { ws, role: null, name: null, charId: null, x: null, y: null, lastMoveInsert: 0 });
+  clients.set(clientId, { ws, role: null, name: null, charId: null, x: null, y: null, lastMoveInsert: 0, lastPushTime: 0 });
   send(ws, { type: 'connected', clientId });
 
   ws.on('message', (raw) => {
@@ -197,6 +197,49 @@ wss.on('connection', (ws) => {
         client.lastMoveInsert = now;
       }
       send(presenterWs, { type: 'audience-position', clientId, x: client.x, y: client.y });
+      return;
+    }
+
+    if (data.type === 'audience-push') {
+      if (client.role !== 'audience') return;
+      if (Date.now() - client.lastPushTime < 1000) return;
+
+      const rawDir = String(data.facingDir || '');
+      const facingDir = (rawDir === 'left' || rawDir === 'right') ? rawDir : 'right';
+      const dx = facingDir === 'left' ? -1 : 1;
+
+      const pusherX = client.x;
+      const pusherY = client.y;
+      let target = null;
+      let targetId = null;
+      let minDist = Infinity;
+
+      for (const [cid, c] of clients) {
+        if (cid === clientId) continue;
+        if (c.role !== 'audience') continue;
+        const diffX = (c.x - pusherX) * dx;
+        if (diffX <= 0 || diffX >= 10) continue;
+        if (c.y !== pusherY) continue;
+        if (diffX < minDist || (diffX === minDist && cid < targetId)) {
+          minDist = diffX;
+          target = c;
+          targetId = cid;
+        }
+      }
+
+      if (!target) {
+        send(ws, { type: 'audience-push-miss' });
+        return;
+      }
+
+      target.x = Math.min(98, Math.max(2, target.x + dx * 10));
+      client.lastPushTime = Date.now();
+
+      insertEvent.run(sessionId, clientId, client.name, client.charId, 'push', null, Date.now());
+      insertEvent.run(sessionId, targetId, target.name, target.charId, 'push', null, Date.now());
+
+      send(presenterWs, { type: 'audience-position', clientId: targetId, x: target.x, y: target.y });
+      send(presenterWs, { type: 'audience-push-hit', clientId: targetId });
       return;
     }
 
