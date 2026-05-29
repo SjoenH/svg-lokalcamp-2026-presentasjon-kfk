@@ -15,7 +15,7 @@
   "dependencies": {
     "better-sqlite3": "^11.10.0",
     "serve-static": "^1.15.0",
-    "ws": "^8.18.0"
+    "ws": "^8.20.1"
   },
   "devDependencies": {
     "vite": "^5.4.21"
